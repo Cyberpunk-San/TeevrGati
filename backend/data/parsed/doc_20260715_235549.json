@@ -1,0 +1,30 @@
+{
+  "success": true,
+  "document_id": "doc_20260715_235549",
+  "pages": [
+    {
+      "page_num": 1,
+      "text": "SOP-C101-SAFE-003 \u00b7 C-101 Reciprocating Compressor Safety & Maintenan\nBPCL Mathura Refinery \u00b7 Rotating Equipment Division\nDocument Control\nAsset: C-101 \u00b7 Natural Gas Reciprocating Compressor. Revision: 4. Date: 22-Sep-2023.\nPlant: BPCL Mathura Refinery, Unit 3 \u00b7 Gas Recovery. Compliant with: OISD-105,\nOISD-117, OSHA 1910.147, API 618.\n1. LOTO (Lockout-Tagout) Procedure \u00b7 OISD-105 Compliant\nMANDATORY per OISD-105 Section 5.3 and OSHA 1910.147. Step 1: Obtain Permit to Work\n(PTW) No. from Area Operations Supervisor. Step 2: Notify all personnel in compressor\nbay. Step 3: Shutdown compressor via DCS \u00b7 wait for coast-down (3 minutes minimum).\nStep 4: Close inlet gas valve XV-101A and outlet valve XV-101B \u00b7 lockout with\npadlock. Step 5: De-energize MCC-3 breaker CB-301 \u00b7 lockout with personal padlock.\nStep 6: Tagout all isolation points with Danger Tags. Step 7: Vent and purge with\nnitrogen \u00b7 3 purge cycles minimum. Step 8: Gas test \u00b7 verify 0% LEL before entry.\nDocument in PTW.\n2. Electrostatic Grounding\nPer OISD-GDN-180 and OISD-117 Section 7.2: All portable equipment, hoses, and\ncontainers must be bonded and grounded before any work involving flammable gas or\nliquids. Connect grounding cable to designated ground lug GR-C101 (copper lug,\npainted yellow). Verify ground resistance less than 10 ohms using megohmmeter.\nAnti-static coveralls mandatory. No synthetic clothing.\n3. PPE Requirements \u00b7 OISD-105 Mandatory\nPer OISD-105 Section 4.1 and OSHA 1910.132: Minimum PPE for all compressor\nmaintenance: Full face shield + safety glasses. Chemical-resistant gloves (nitrile\n8mil). Flame-resistant coveralls (NFPA 70E Category 2 minimum). Steel-toed safety\nboots. Hard hat (Class E, electrical rated). Hearing protection (earmuffs, NRR 28\nminimum). H2S detector (personal) \u00b7 mandatory for gas service.\n4. Confined Space Gas Testing and Ventilation\nPer OSHA 1910.146 and OISD-105 Section 8.2: Compressor crankcase is classified as a\nPermit-Required Confined Space. Atmospheric testing required before entry: O2\n19.5\u00b723.5%, LEL less than 10%, H2S less than 1 ppm (BPCL standard, stricter than OSHA\n10 ppm TWA). Continuous forced ventilation (minimum 4 air changes/hour) required\nduring work. Station attendant must be present outside confined space at all times.\nRescue equipment (SCBA, rescue harness) to be staged at entry point.\n5. Tagout Warning Flag Registration\nPer OSHA 1910.147 and BPCL PTW System Procedure PTW-BPCL-001: All lockout/tagout\npoints must be registered in the PTW system before work begins. Tagout flags must be\nred with white text: DANGER \u00b7 DO NOT OPERATE. Each tag must show: technician name,\ndate, equipment tag, permit number. PTW Control Room copy must be maintained until\nall tags are removed. No tag removal without PTW closure and supervisor sign-off.\n",
+      "length": 2794
+    }
+  ],
+  "metadata": {
+    "format": "PDF 1.7",
+    "title": "",
+    "author": "",
+    "subject": "",
+    "keywords": "",
+    "creator": "",
+    "producer": "",
+    "creationDate": "",
+    "modDate": "",
+    "trapped": "",
+    "encryption": null
+  },
+  "parse_chain": [
+    "file_detection: clean_text",
+    "clean_text_pymupdf"
+  ],
+  "error": null,
+  "fallback_used": false
+}

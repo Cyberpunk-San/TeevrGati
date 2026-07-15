@@ -1,20 +1,25 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { 
-  Activity, 
-  AlertTriangle, 
-  Send, 
-  Layers, 
-  Cpu, 
-  ShieldAlert, 
-  CheckCircle, 
-  RefreshCw 
+import {
+  Send,
+  Cpu,
+  AlertTriangle,
+  CheckCircle2,
+  ChevronRight,
+  Zap,
+  BookOpen,
+  FlaskConical,
+  GitBranch,
+  GraduationCap,
+  Mic,
+  MicOff,
+  FileText,
+  Activity,
+  Loader2,
 } from "lucide-react";
-import { VoiceInput } from "./components/VoiceInput";
-import { PathVisualization } from "./components/PathVisualization";
 
+/* ── Types (unchanged from original) ─────────────────── */
 interface AgentLog {
   timestamp: string;
   level: string;
@@ -52,11 +57,11 @@ interface QueryResult {
     severity: string;
     recommendation: string;
   };
-  work_order?: any;
-  proactive_alerts?: any[];
+  work_order?: unknown;
+  proactive_alerts?: unknown[];
   agent_log?: AgentLog[];
-  paths?: any[];
-  compliance_gaps?: any[];
+  paths?: unknown[];
+  compliance_gaps?: unknown[];
   debate?: {
     historian: string;
     physicist: string;
@@ -76,43 +81,172 @@ interface ResolutionDetails {
   agent_log?: AgentLog[];
 }
 
+/* ── Loading phase labels ─────────────────────────────── */
+const LOAD_PHASES = [
+  "Querying historian agent…",
+  "Running physics simulation…",
+  "Checking SOP conflicts…",
+  "Synthesising final answer…",
+];
+
+/* ── Agent pipeline config ───────────────────────────── */
+const PIPELINE_STEPS = [
+  { id: "historian",  label: "Historian",  icon: BookOpen },
+  { id: "simulator",  label: "Simulator",  icon: FlaskConical },
+  { id: "conflict",   label: "Conflict",   icon: GitBranch },
+  { id: "mentor",     label: "Mentor",     icon: GraduationCap },
+];
+
+/* ── Debate agent config ──────────────────────────────── */
+const DEBATE_AGENTS = [
+  {
+    key: "historian" as const,
+    label: "Historian",
+    sub: "RAG + KG",
+    letter: "H",
+    border: "border-l-sky-500",
+    text: "text-sky-400",
+    bg: "bg-sky-500/5",
+  },
+  {
+    key: "physicist" as const,
+    label: "Physicist",
+    sub: "Sensor Telemetry",
+    letter: "P",
+    border: "border-l-violet-500",
+    text: "text-violet-400",
+    bg: "bg-violet-500/5",
+  },
+  {
+    key: "operator" as const,
+    label: "Operator",
+    sub: "Tacit Knowledge",
+    letter: "O",
+    border: "border-l-emerald-500",
+    text: "text-emerald-400",
+    bg: "bg-emerald-500/5",
+  },
+  {
+    key: "consensus" as const,
+    label: "Consensus",
+    sub: "Resolution",
+    letter: "C",
+    border: "border-l-[#22d3ee]",
+    text: "text-[#22d3ee]",
+    bg: "bg-[#22d3ee]/5",
+  },
+];
+
+/* ── Quick preset queries ─────────────────────────────── */
+const QUICK_QUERIES = [
+  {
+    label: "P-201 High Vibration",
+    query: "Pump P-201 is vibrating loudly. What could be wrong?",
+  },
+  {
+    label: "LOTO Procedure P-201",
+    query: "What are the LOTO lockout/tagout procedures for Pump P-201?",
+  },
+  {
+    label: "SOP Contradiction Check",
+    query: "What are the maintenance procedures for Pump P-201?",
+  },
+];
+
+/* ── Severity colour ──────────────────────────────────── */
+function severityClass(s?: string) {
+  if (!s) return "text-[#a1a1aa]";
+  const l = s.toLowerCase();
+  if (l.includes("critical") || l.includes("high")) return "text-rose-400";
+  if (l.includes("medium") || l.includes("moderate")) return "text-amber-400";
+  return "text-emerald-400";
+}
+
+/* ── Inline VoiceInput ────────────────────────────────── */
+function VoiceButton({ onTranscript }: { onTranscript: (t: string) => void }) {
+  const [listening, setListening] = useState(false);
+
+  const start = () => {
+    const SR =
+      (window as Record<string, unknown>).SpeechRecognition as typeof SpeechRecognition ||
+      (window as Record<string, unknown>).webkitSpeechRecognition as typeof SpeechRecognition;
+    if (!SR) { alert("Speech recognition not supported in this browser."); return; }
+    const r = new SR();
+    r.lang = "en-US";
+    r.continuous = false;
+    r.interimResults = false;
+    r.onstart = () => setListening(true);
+    r.onend   = () => setListening(false);
+    r.onerror = () => setListening(false);
+    r.onresult = (e: SpeechRecognitionEvent) => {
+      const t = e.results[0][0].transcript;
+      if (t) onTranscript(t);
+    };
+    r.start();
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={start}
+      disabled={listening}
+      title={listening ? "Listening…" : "Voice input"}
+      className={`p-1.5 rounded-[4px] border transition-colors cursor-pointer ${
+        listening
+          ? "border-rose-500/50 bg-rose-500/10 text-rose-400"
+          : "border-[#27272a] text-[#52525b] hover:border-[#22d3ee] hover:text-[#22d3ee]"
+      }`}
+    >
+      {listening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+    </button>
+  );
+}
+
+/* ══════════════════════════════════════════════════════ */
+/*  Main Page                                             */
+/* ══════════════════════════════════════════════════════ */
 export default function Home() {
-  const [query, setQuery] = useState("Pump P-201 is vibrating loudly. What could be wrong?");
+  const [query, setQuery] = useState(
+    "Pump P-201 is vibrating loudly. What could be wrong?"
+  );
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<QueryResult | null>(null);
-  
-  // Resolution states
-  const [resolving, setResolving] = useState(false);
+  const [phaseIdx, setPhaseIdx] = useState(0);
+
+  // Resolution states (identical to original)
+  const [resolving, setResolving]               = useState(false);
   const [conflictResolution, setConflictResolution] = useState<string | null>(null);
-  const [resolutionDetails, setResolutionDetails] = useState<ResolutionDetails | null>(null);
-  const [showInterview, setShowInterview] = useState(false);
-  const [humanResponse, setHumanResponse] = useState("");
-  
-  // Animation refs
-  const consoleRef = useRef<HTMLDivElement>(null);
-  
-  // Load saved query results on mount
+  const [resolutionDetails, setResolutionDetails]   = useState<ResolutionDetails | null>(null);
+  const [showInterview, setShowInterview]            = useState(false);
+  const [humanResponse, setHumanResponse]            = useState("");
+
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Restore from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem("query_result");
     if (saved) {
-      try {
-        setResult(JSON.parse(saved));
-      } catch (e) {
-        console.error(e);
-      }
+      try { setResult(JSON.parse(saved)); } catch { /* ignore */ }
     }
     const savedRes = localStorage.getItem("conflict_resolution");
     if (savedRes) setConflictResolution(savedRes);
     const savedDet = localStorage.getItem("resolution_details");
     if (savedDet) {
-      try {
-        setResolutionDetails(JSON.parse(savedDet));
-      } catch (e) {
-        console.error(e);
-      }
+      try { setResolutionDetails(JSON.parse(savedDet)); } catch { /* ignore */ }
     }
   }, []);
 
+  // Cycle loading phases
+  useEffect(() => {
+    if (!loading) { setPhaseIdx(0); return; }
+    const id = setInterval(
+      () => setPhaseIdx((p) => (p + 1) % LOAD_PHASES.length),
+      1200
+    );
+    return () => clearInterval(id);
+  }, [loading]);
+
+  /* ── handleQuery (unchanged logic) ─────────────────── */
   const handleQuery = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setLoading(true);
@@ -121,34 +255,26 @@ export default function Home() {
     setResolutionDetails(null);
     setShowInterview(false);
     setHumanResponse("");
-    
-    // Clear storage keys on new query
+
     localStorage.removeItem("query_result");
     localStorage.removeItem("conflict_resolution");
     localStorage.removeItem("resolution_details");
-    
+
     try {
       const res = await fetch("http://localhost:8000/api/query", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer dev-key"
+          Authorization: "Bearer dev-key",
         },
-        body: JSON.stringify({ query })
+        body: JSON.stringify({ query }),
       });
       if (res.ok) {
         const data = await res.json();
         setResult(data);
         localStorage.setItem("query_result", JSON.stringify(data));
-        
         setTimeout(() => {
-          if (consoleRef.current) {
-            gsap.fromTo(
-              consoleRef.current.children,
-              { opacity: 0, x: -10 },
-              { opacity: 1, x: 0, duration: 0.3, stagger: 0.05, ease: "power2.out" }
-            );
-          }
+          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 100);
       }
     } catch (err) {
@@ -158,32 +284,30 @@ export default function Home() {
     }
   };
 
+  /* ── handleResolve (unchanged logic) ───────────────── */
   const handleResolve = async (choice: string) => {
     if (!result) return;
     setResolving(true);
     try {
       const res = await fetch("http://localhost:8000/api/resolve", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer dev-key"
+          Authorization: "Bearer dev-key",
         },
         body: JSON.stringify({
           query_result: result,
           choice,
-          human_feedback: choice === "human" ? humanResponse : null
-        })
+          human_feedback: choice === "human" ? humanResponse : null,
+        }),
       });
       if (res.ok) {
         const data = await res.json();
         setResolutionDetails(data);
         setConflictResolution(choice);
         setShowInterview(false);
-        
         localStorage.setItem("conflict_resolution", choice);
         localStorage.setItem("resolution_details", JSON.stringify(data));
-        
-        // Update query result log references in storage
         const updatedResult = { ...result };
         if (updatedResult.agent_log && data.agent_log) {
           updatedResult.agent_log = [...updatedResult.agent_log, ...data.agent_log];
@@ -198,317 +322,482 @@ export default function Home() {
     }
   };
 
+  /* ── Derived pipeline state ─────────────────────────── */
+  const pipelineDone = result != null;
+
+  /* ─────────────────────────────────────────────────── */
+  /*  RENDER                                             */
+  /* ─────────────────────────────────────────────────── */
   return (
-    <div className="flex-1 flex flex-col p-6 gap-6">
-      
-      {/* Top Welcome Title */}
-      <div className="flex justify-between items-center bg-[#0d1527] border border-[#1e293b] p-6 rounded-xl shadow-lg">
+    <div className="p-6 h-full flex flex-col gap-6">
+
+      {/* ── Page header ─────────────────────────────── */}
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-wide">DIAGNOSTICS CO-PILOT CONSOLE</h2>
-          <p className="text-xs text-[#64748b]">Run signals analysis and query semantic maintenance standards</p>
+          <p className="text-[10px] font-semibold tracking-[.15em] text-[#52525b] uppercase mb-1">
+            Diagnostics Engine
+          </p>
+          <h1 className="text-base font-semibold text-[#fafafa] tracking-tight">
+            AI Diagnostics Co-Pilot
+          </h1>
         </div>
-        <div className="h-10 w-10 rounded-lg bg-[#00f5d4]/10 border border-[#00f5d4]/20 flex items-center justify-center">
-          <Activity className="h-5.5 w-5.5 text-[#00f5d4]" />
-        </div>
+        {pipelineDone && (
+          <span className="badge badge-success animate-fade-in">
+            <CheckCircle2 className="h-3 w-3" />
+            Analysis complete
+          </span>
+        )}
+        {loading && (
+          <span className="badge badge-info animate-pulse">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Processing
+          </span>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Input Panel (Left Column) */}
-        <div className="lg:col-span-4 flex flex-col gap-6">
-          <div className="bg-[#111827]/80 border border-[#1e293b] rounded-xl p-5 shadow-xl">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4 text-[#00f5d4]">
-              ⚡ Query Engine
-            </h3>
-            
+      {/* ── Two-column layout ───────────────────────── */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[35%_65%] gap-5 min-h-0">
+
+        {/* ════════════════════════════════════════════ */}
+        {/*  LEFT — Query Panel                          */}
+        {/* ════════════════════════════════════════════ */}
+        <div className="flex flex-col gap-4">
+          <div className="card p-5 flex flex-col gap-4">
+
+            {/* Section label */}
+            <p className="text-[10px] font-semibold tracking-[.15em] text-[#52525b] uppercase">
+              Diagnostics Engine
+            </p>
+
+            {/* Textarea */}
             <form onSubmit={handleQuery} className="flex flex-col gap-3">
-              <label className="text-xs text-[#94a3b8] font-medium">Enter Maintenance Query:</label>
-              <textarea
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                rows={4}
-                className="w-full bg-[#0d1527] border border-[#2e374a] rounded-lg p-3 text-sm text-white focus:outline-none focus:border-[#00f5d4] focus:ring-1 focus:ring-[#00f5d4] placeholder-[#475569] resize-none font-mono"
-                placeholder="Ask standard or real-time diagnostics parameters..."
-              />
-              
+              <div className="relative">
+                <textarea
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  rows={5}
+                  placeholder="Describe the equipment issue or ask a maintenance question…"
+                  className={`w-full bg-[#09090b] border-0 border-b-2 rounded-none px-0 pb-2 pt-1 text-sm text-[#fafafa] placeholder-[#3f3f46] resize-none mono transition-colors duration-200 ${
+                    "border-b-[#27272a] focus:border-b-[#22d3ee]"
+                  }`}
+                  style={{ boxShadow: "none" }}
+                />
+                <div className="absolute bottom-3 right-0">
+                  <VoiceButton onTranscript={(t) => setQuery(t)} />
+                </div>
+              </div>
+
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-[#0072ff] to-[#00f5d4] text-[#0b0f19] font-bold text-sm rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                disabled={loading || !query.trim()}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#22d3ee] text-[#09090b] font-semibold text-sm rounded-[6px] hover:bg-[#67e8f9] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 {loading ? (
                   <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    Analysing Waveforms...
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Analysing…
                   </>
                 ) : (
                   <>
-                    <Send className="h-4 w-4" />
-                    Execute Diagnostic
+                    <Send className="h-3.5 w-3.5" />
+                    Run Diagnostic
                   </>
                 )}
               </button>
             </form>
 
-            <div className="mt-6 border-t border-[#1e293b] pt-4">
-              <h4 className="text-xs font-semibold text-[#64748b] mb-2 uppercase tracking-wide">Quick Queries</h4>
-              <div className="flex flex-col gap-2">
-                <button 
-                  onClick={() => setQuery("Pump P-201 is vibrating loudly. What could be wrong?")}
-                  className="text-left text-xs bg-[#0d1527] p-2.5 rounded-lg border border-[#1e293b] hover:border-[#00f5d4] transition-all text-[#94a3b8] hover:text-white"
-                >
-                  🔍 Pump P-201 Vibration Alert (Flag Discrepancy)
-                </button>
-                <button 
-                  onClick={() => setQuery("What are the maintenance procedures for Pump P-201?")}
-                  className="text-left text-xs bg-[#0d1527] p-2.5 rounded-lg border border-[#1e293b] hover:border-[#00f5d4] transition-all text-[#94a3b8] hover:text-white"
-                >
-                  📄 Procedures / SOP Specs for Pump P-201
-                </button>
+            {/* Quick queries */}
+            <div className="border-t border-[#1c1c1e] pt-4">
+              <p className="text-[10px] font-semibold tracking-[.1em] text-[#52525b] uppercase mb-2.5">
+                Quick Queries
+              </p>
+              <div className="flex flex-col gap-1.5">
+                {QUICK_QUERIES.map(({ label, query: q }) => (
+                  <button
+                    key={label}
+                    onClick={() => setQuery(q)}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-[6px] bg-[#18181b] border border-[#27272a] text-[12px] text-[#71717a] hover:text-[#fafafa] hover:border-[#3f3f46] transition-colors cursor-pointer"
+                  >
+                    <ChevronRight className="h-3 w-3 shrink-0 text-[#3f3f46]" />
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
+
+          {/* Agent log (compact) */}
+          {result?.agent_log && result.agent_log.length > 0 && (
+            <div className="card p-4 flex flex-col gap-3 animate-slide-up">
+              <p className="text-[10px] font-semibold tracking-[.15em] text-[#52525b] uppercase">
+                Agent Log
+              </p>
+              <div className="h-32 overflow-y-auto flex flex-col gap-1 mono text-[10px]">
+                {result.agent_log.map((log, i) => (
+                  <div key={i} className="flex gap-2 leading-snug">
+                    <span className="text-[#3f3f46] shrink-0">{log.timestamp}</span>
+                    <span
+                      className={`font-bold shrink-0 ${
+                        log.level === "WARNING"
+                          ? "text-amber-400"
+                          : log.level === "ERROR"
+                          ? "text-rose-400"
+                          : "text-[#22d3ee]"
+                      }`}
+                    >
+                      {log.level}
+                    </span>
+                    <span className="text-[#71717a]">{log.message}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Results Panel (Right Column) */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
+        {/* ════════════════════════════════════════════ */}
+        {/*  RIGHT — Results Panel                       */}
+        {/* ════════════════════════════════════════════ */}
+        <div className="flex flex-col gap-4" ref={resultsRef}>
+
+          {/* ── Empty state ───────────────────────── */}
           {!result && !loading && (
-            <div className="bg-[#111827]/40 border border-[#1e293b] rounded-2xl p-10 flex flex-col items-center justify-center text-center h-[350px]">
-              <Cpu className="h-16 w-16 text-[#475569] mb-4 animate-pulse" />
-              <h3 className="text-lg font-bold text-white mb-2">Platform Diagnostics Co-Pilot</h3>
-              <p className="text-sm text-[#64748b] max-w-md">
-                Enter parameters on the left to start multi-agent vibration and document verification.
+            <div className="card flex-1 flex flex-col items-center justify-center text-center py-16 gap-4">
+              <div className="h-12 w-12 rounded-full border border-[#27272a] flex items-center justify-center mb-2">
+                <Activity className="h-5 w-5 text-[#3f3f46]" />
+              </div>
+              <p className="text-sm font-medium text-[#3f3f46]">
+                Run a diagnostic query
+              </p>
+              <p className="text-[12px] text-[#27272a] max-w-xs">
+                Enter a maintenance question on the left and hit Run Diagnostic to start multi-agent analysis.
               </p>
             </div>
           )}
 
+          {/* ── Loading state ─────────────────────── */}
           {loading && (
-            <div className="bg-[#111827]/40 border border-[#1e293b] rounded-2xl p-10 flex flex-col items-center justify-center text-center h-[350px]">
-              <RefreshCw className="h-12 w-12 text-[#00f5d4] mb-4 animate-spin" />
-              <h3 className="text-lg font-bold text-white mb-2">Analyzing Signals...</h3>
-              <p className="text-sm text-[#64748b]">Running FFT, calculating anomaly severity, indexing vectors...</p>
+            <div className="card flex-1 flex flex-col items-center justify-center text-center py-16 gap-6">
+              {/* Animated dots */}
+              <div className="flex gap-1.5">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="h-2 w-2 rounded-full bg-[#22d3ee]"
+                    style={{
+                      animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite`,
+                    }}
+                  />
+                ))}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-[#fafafa] mb-1 animate-fade-in" key={phaseIdx}>
+                  {LOAD_PHASES[phaseIdx]}
+                </p>
+                <p className="text-[12px] text-[#52525b]">
+                  Multi-agent pipeline running…
+                </p>
+              </div>
             </div>
           )}
 
+          {/* ── Results ───────────────────────────── */}
           {result && (
-            <div className="flex flex-col gap-6">
-              
-              {/* Log Console */}
-              <div className="bg-[#0b0f19] border border-[#1e293b] rounded-xl p-4 shadow-inner">
-                <h4 className="text-xs font-semibold text-[#64748b] mb-3 uppercase tracking-wider flex items-center gap-2">
-                  <Layers className="h-3.5 w-3.5" />
-                  Agent Execution Log
-                </h4>
-                <div ref={consoleRef} className="h-28 overflow-y-auto font-mono text-[11px] flex flex-col gap-1.5 scrollbar-thin scrollbar-thumb-slate-700">
-                  {result.agent_log?.map((log, i) => (
-                    <div key={i} className="flex gap-2">
-                      <span className="text-[#475569]">[{log.timestamp}]</span>
-                      <span className={`font-bold ${
-                        log.level === "WARNING" ? "text-amber-500" : log.level === "ERROR" ? "text-rose-500" : "text-[#00f5d4]"
-                      }`}>
-                        [{log.level}]
-                      </span>
-                      <span className="text-slate-300">{log.message}</span>
-                    </div>
-                  ))}
-                </div>
+            <div className="flex flex-col gap-4 animate-slide-up">
+
+              {/* Agent pipeline strip */}
+              <div className="card px-5 py-3 flex items-center gap-2 overflow-x-auto">
+                {PIPELINE_STEPS.map((step, i) => {
+                  const Icon = step.icon;
+                  return (
+                    <React.Fragment key={step.id}>
+                      <div
+                        className={`flex items-center gap-1.5 shrink-0 ${
+                          pipelineDone ? "text-[#22d3ee]" : "text-[#3f3f46]"
+                        }`}
+                      >
+                        <div
+                          className={`h-6 w-6 rounded-full flex items-center justify-center ${
+                            pipelineDone
+                              ? "bg-[#22d3ee]/10 border border-[#22d3ee]/30"
+                              : "bg-[#18181b] border border-[#27272a]"
+                          }`}
+                        >
+                          <Icon className="h-3 w-3" />
+                        </div>
+                        <span className="text-[11px] font-medium">{step.label}</span>
+                        {pipelineDone && (
+                          <CheckCircle2 className="h-3 w-3 text-[#22d3ee]" />
+                        )}
+                      </div>
+                      {i < PIPELINE_STEPS.length - 1 && (
+                        <ChevronRight className="h-4 w-4 text-[#3f3f46] shrink-0" />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </div>
 
-              {/* Path Traversal Proof */}
-              {result.paths && result.paths.length > 0 && (
-                <PathVisualization paths={result.paths} />
-              )}
-
-              {/* Multi-Agent Debate Panel */}
-              {result.debate && (
-                <div className="bg-[#111827]/80 border border-[#1e293b] rounded-xl p-5 shadow-lg flex flex-col gap-4">
-                  <h3 className="text-xs font-bold text-[#00f5d4] uppercase tracking-wider flex items-center gap-2">
-                    <Cpu className="h-4 w-4 text-[#00f5d4]" />
-                    Multi-Agent Consensus Debate
-                  </h3>
-
-                  <div className="flex flex-col gap-3">
-                    {/* Historian bubble */}
-                    <div className="flex flex-col gap-1 p-3 bg-blue-950/10 border border-blue-900/20 rounded-lg text-xs">
-                      <span className="text-[#4cc9f0] font-bold uppercase text-[9px] tracking-wide">📜 Historian Agent (RAG + KG)</span>
-                      <p className="text-slate-300 italic">"{result.debate.historian}"</p>
+              {/* Physics metrics */}
+              {result.physics_result && (
+                <div className="card px-5 py-4">
+                  <p className="text-[10px] font-semibold tracking-[.15em] text-[#52525b] uppercase mb-3">
+                    Physics Analysis
+                  </p>
+                  <div className="grid grid-cols-3 gap-4 divide-x divide-[#27272a]">
+                    <div className="pr-4">
+                      <p className="text-[10px] text-[#52525b] uppercase tracking-wider mb-1">
+                        Fault Type
+                      </p>
+                      <p className="text-sm font-semibold text-[#fafafa] mono">
+                        {result.physics_result.fault_type}
+                      </p>
                     </div>
-
-                    {/* Physicist bubble */}
-                    <div className="flex flex-col gap-1 p-3 bg-purple-950/10 border border-purple-900/20 rounded-lg text-xs">
-                      <span className="text-purple-400 font-bold uppercase text-[9px] tracking-wide">🔬 Physicist Agent (Sensor Telemetry)</span>
-                      <p className="text-slate-300 italic">"{result.debate.physicist}"</p>
+                    <div className="px-4">
+                      <p className="text-[10px] text-[#52525b] uppercase tracking-wider mb-1">
+                        Severity
+                      </p>
+                      <p className={`text-sm font-semibold mono ${severityClass(result.physics_result.severity)}`}>
+                        {result.physics_result.severity}
+                      </p>
                     </div>
-
-                    {/* Operator bubble */}
-                    <div className="flex flex-col gap-1 p-3 bg-emerald-950/10 border border-emerald-900/20 rounded-lg text-xs">
-                      <span className="text-emerald-400 font-bold uppercase text-[9px] tracking-wide">🔧 Operator Agent (Tacit Knowledge)</span>
-                      <p className="text-slate-300 italic">"{result.debate.operator}"</p>
-                    </div>
-
-                    {/* Consensus banner */}
-                    <div className="p-3.5 bg-cyan-950/15 border border-cyan-900/40 rounded-lg text-xs flex flex-col gap-1">
-                      <span className="text-[#00f5d4] font-bold uppercase text-[9px] tracking-wide">🤝 Consensus Resolution</span>
-                      <p className="text-white font-semibold">{result.debate.consensus}</p>
+                    <div className="pl-4">
+                      <p className="text-[10px] text-[#52525b] uppercase tracking-wider mb-1">
+                        Recommendation
+                      </p>
+                      <p className="text-[12px] text-[#a1a1aa] leading-snug">
+                        {result.physics_result.recommendation}
+                      </p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Conflict Detection Panel */}
-              {result.conflict_detected && !conflictResolution && result.conflict_details && (
-                <div className="bg-gradient-to-b from-[#1c1917] to-[#0c0a09] border border-amber-900/50 rounded-xl p-5 shadow-2xl flex flex-col gap-4">
-                  <div className="flex items-center gap-3">
-                    <AlertTriangle className="h-6 w-6 text-amber-500" />
-                    <div>
-                      <h3 className="text-md font-bold text-white">Discrepancy Detected between Standards and Live Physics!</h3>
-                      <p className="text-xs text-amber-500/80">Automated engine recommends action plan below.</p>
-                    </div>
-                  </div>
-
-                  {result.auto_resolution_recommendation && (
-                    <div className="bg-[#1c1d21] border border-cyan-950 p-4 rounded-lg text-xs">
-                      <span className="text-[#00f5d4] font-bold block mb-1">🤖 TRUTH ENGINE RECOMMENDATION</span>
-                      Suggest resolving using <span className="text-white font-bold">{result.auto_resolution_recommendation.winner.toUpperCase()}</span>: <span className="italic">"{result.auto_resolution_recommendation.reason}"</span>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-[#0f172a]/80 p-4 rounded-lg border border-[#1e293b]">
-                      <h4 className="text-xs font-bold text-sky-400 mb-2 uppercase">📄 SOP Documentation</h4>
-                      <p className="text-xs text-slate-300 font-medium mb-3">{result.conflict_details.document_hypothesis}</p>
-                      <div className="flex justify-between items-center text-[10px] text-[#64748b]">
-                        <span>Confidence: {(result.conflict_details.document_confidence * 100).toFixed(0)}%</span>
-                      </div>
-                    </div>
-                    <div className="bg-[#0f172a]/80 p-4 rounded-lg border border-[#1e293b]">
-                      <h4 className="text-xs font-bold text-[#00f5d4] mb-2 uppercase">🔬 Live Physics</h4>
-                      <p className="text-xs text-slate-300 font-medium mb-3">{result.conflict_details.physics_result}</p>
-                      <div className="flex justify-between items-center text-[10px] text-[#64748b]">
-                        <span>Confidence: {(result.conflict_details.physics_confidence * 100).toFixed(0)}%</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <button
-                      onClick={() => handleResolve("physics")}
-                      className="flex-1 py-2 px-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-xs rounded-lg hover:shadow-lg cursor-pointer"
-                    >
-                      ✅ Trust Physics Result
-                    </button>
-                    <button
-                      onClick={() => handleResolve("documents")}
-                      className="flex-1 py-2 px-3 bg-[#1e293b] border border-[#2e374a] text-white font-semibold text-xs rounded-lg cursor-pointer"
-                    >
-                      📄 Trust Document SOP
-                    </button>
-                    <button
-                      onClick={() => setShowInterview(true)}
-                      className="flex-1 py-2 px-3 bg-[#0d1527] border border-cyan-900/50 text-[#00f5d4] font-semibold text-xs rounded-lg cursor-pointer"
-                    >
-                      🎙️ Interview Senior Engineer
-                    </button>
-                  </div>
-
-                  {showInterview && (
-                    <div className="border-t border-[#2e374a] pt-4 mt-2 flex flex-col gap-3">
-                      <div className="p-3 bg-[#0c0a09] border border-amber-900/30 rounded-lg text-xs text-amber-500/90 font-mono">
-                        {result.human_question}
-                      </div>
-                      <textarea
-                        value={humanResponse}
-                        onChange={(e) => setHumanResponse(e.target.value)}
-                        rows={2}
-                        className="w-full bg-[#0d1527] border border-[#2e374a] rounded-lg p-3 text-xs text-white focus:outline-none focus:border-[#00f5d4]"
-                        placeholder="Type unwritten engineer workaround details..."
-                      />
-                      <div className="flex gap-2 justify-end">
-                        <button
-                          onClick={() => handleResolve("human")}
-                          className="py-2 px-4 bg-gradient-to-r from-[#0072ff] to-[#00f5d4] text-[#0b0f19] font-bold text-xs rounded-lg cursor-pointer"
-                        >
-                          Submit Rule
-                        </button>
-                        <button
-                          onClick={() => setShowInterview(false)}
-                          className="py-2 px-4 bg-[#1e293b] border border-[#2e374a] text-xs rounded-lg cursor-pointer"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Resolved Conflict State */}
-              {conflictResolution && (
-                <div className="bg-[#0f172a] border border-[#2e374a] rounded-xl p-5 shadow-md flex flex-col gap-3">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                    <CheckCircle className="h-4 w-4 text-[#00f5d4]" />
-                    DISCREPANCY RESOLVED: {conflictResolution.toUpperCase()} WINS
-                  </div>
-                  {conflictResolution === 'human' && resolutionDetails?.structured_rule && (
-                    <div className="p-4 bg-emerald-950/20 border border-emerald-900/50 rounded-lg text-xs">
-                      <div className="font-bold text-[#52b788] mb-2">💾 STRUCTURED TACIT RULE CAPTURED</div>
-                      <p className="italic text-emerald-300 font-mono">"{resolutionDetails.structured_rule.rule_text}"</p>
-                    </div>
-                  )}
-                  {resolutionDetails?.healed_nodes && (
-                    <div className="text-xs text-[#94a3b8]">
-                      🩹 Graph self-healing applied. Check the <strong className="text-white">Self-Healing Graph</strong> page to view node changes.
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Diagnostics Output Section */}
-              {(!result.conflict_detected || conflictResolution) && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-2 bg-[#111827]/85 border border-[#1e293b] rounded-xl p-5 shadow-lg">
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-sm font-bold text-white">📝 Synthesized Action Plan</h3>
+              {/* Answer card */}
+              {(!result.conflict_detected || conflictResolution) &&
+                result.final_answer && (
+                  <div className="card px-5 py-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[10px] font-semibold tracking-[.15em] text-[#52525b] uppercase">
+                        Synthesised Answer
+                      </p>
                       <button
                         onClick={() => window.print()}
-                        className="px-2.5 py-1.5 bg-[#0d1527] border border-[#2e374a] hover:border-[#00f5d4] hover:text-white rounded-lg text-[10px] font-semibold text-[#94a3b8] transition-all flex items-center gap-1.5 cursor-pointer"
-                        title="Export safety report as PDF"
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] border border-[#27272a] text-[10px] text-[#52525b] hover:text-[#fafafa] hover:border-[#3f3f46] transition-colors cursor-pointer"
                       >
-                        Export Report PDF
+                        <FileText className="h-3 w-3" />
+                        Export PDF
                       </button>
                     </div>
-                    <div className="text-xs text-slate-300 leading-relaxed font-mono whitespace-pre-wrap">
+                    <p className="text-[13px] text-[#a1a1aa] leading-relaxed whitespace-pre-wrap mono">
                       {result.final_answer}
-                    </div>
+                    </p>
                   </div>
-                  
-                  <div className="bg-[#111827]/85 border border-[#1e293b] rounded-xl p-5 shadow-lg">
-                    <h3 className="text-sm font-bold text-white mb-3">📊 Waveform Signature</h3>
-                    {result.physics_result ? (
-                      <div className="flex flex-col gap-3 text-xs">
-                        <div>
-                          <span className="text-[#64748b] text-[10px] block uppercase">Diagnosis</span>
-                          <span className="text-white font-bold">{result.physics_result.fault_type}</span>
+                )}
+
+              {/* Multi-agent debate */}
+              {result.debate && (
+                <div className="card px-5 py-4">
+                  <p className="text-[10px] font-semibold tracking-[.15em] text-[#52525b] uppercase mb-3">
+                    Agent Debate
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {DEBATE_AGENTS.map((agent) => {
+                      const value = result.debate![agent.key];
+                      if (!value) return null;
+                      return (
+                        <div
+                          key={agent.key}
+                          className={`border-l-2 pl-3 py-2 pr-3 rounded-r-[6px] ${agent.border} ${agent.bg}`}
+                        >
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <div
+                              className={`h-5 w-5 rounded-full flex items-center justify-center text-[9px] font-black ${agent.bg} border border-current ${agent.text}`}
+                            >
+                              {agent.letter}
+                            </div>
+                            <div>
+                              <p className={`text-[11px] font-semibold ${agent.text}`}>
+                                {agent.label}
+                              </p>
+                              <p className="text-[9px] text-[#52525b]">{agent.sub}</p>
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-[#71717a] italic leading-snug">
+                            &ldquo;{value}&rdquo;
+                          </p>
                         </div>
-                        <div>
-                          <span className="text-[#64748b] text-[10px] block uppercase">Severity</span>
-                          <span className="text-rose-400 font-bold">{result.physics_result.severity}</span>
-                        </div>
-                        <div>
-                          <span className="text-[#64748b] text-[10px] block uppercase">Action Required</span>
-                          <p className="text-slate-400 text-[11px] leading-tight">{result.physics_result.recommendation}</p>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Conflict panel */}
+              {result.conflict_detected &&
+                !conflictResolution &&
+                result.conflict_details && (
+                  <div className="card border-amber-500/30 px-5 py-4 flex flex-col gap-4 animate-slide-up">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+                      <div>
+                        <p className="text-sm font-semibold text-[#fafafa]">
+                          Conflict Detected
+                        </p>
+                        <p className="text-[11px] text-amber-400/80">
+                          SOP documentation contradicts live physics data
+                        </p>
+                      </div>
+                    </div>
+
+                    {result.auto_resolution_recommendation && (
+                      <div className="rounded-[6px] border border-[#22d3ee]/20 bg-[#22d3ee]/5 px-4 py-3">
+                        <p className="text-[10px] font-semibold tracking-widest text-[#22d3ee] uppercase mb-1">
+                          AI Recommendation
+                        </p>
+                        <p className="text-[12px] text-[#a1a1aa]">
+                          Trust{" "}
+                          <span className="text-[#fafafa] font-semibold">
+                            {result.auto_resolution_recommendation.winner.toUpperCase()}
+                          </span>
+                          :{" "}
+                          <em>{result.auto_resolution_recommendation.reason}</em>
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-[6px] border border-[#27272a] bg-[#09090b] px-4 py-3">
+                        <p className="text-[10px] font-semibold text-sky-400 uppercase tracking-wider mb-2">
+                          SOP Documentation
+                        </p>
+                        <p className="text-[12px] text-[#a1a1aa] leading-snug mb-3">
+                          {result.conflict_details.document_hypothesis}
+                        </p>
+                        <p className="text-[10px] text-[#52525b] mono">
+                          Confidence{" "}
+                          {(result.conflict_details.document_confidence * 100).toFixed(0)}%
+                        </p>
+                      </div>
+                      <div className="rounded-[6px] border border-[#27272a] bg-[#09090b] px-4 py-3">
+                        <p className="text-[10px] font-semibold text-[#22d3ee] uppercase tracking-wider mb-2">
+                          Live Physics
+                        </p>
+                        <p className="text-[12px] text-[#a1a1aa] leading-snug mb-3">
+                          {result.conflict_details.physics_result}
+                        </p>
+                        <p className="text-[10px] text-[#52525b] mono">
+                          Confidence{" "}
+                          {(result.conflict_details.physics_confidence * 100).toFixed(0)}%
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Resolution buttons */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        onClick={() => handleResolve("physics")}
+                        disabled={resolving}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[12px] font-semibold rounded-[6px] hover:bg-emerald-500/20 disabled:opacity-50 cursor-pointer transition-colors"
+                      >
+                        <Zap className="h-3.5 w-3.5" />
+                        Trust Physics
+                      </button>
+                      <button
+                        onClick={() => handleResolve("documents")}
+                        disabled={resolving}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-[#18181b] border border-[#27272a] text-[#a1a1aa] text-[12px] font-semibold rounded-[6px] hover:border-[#3f3f46] hover:text-[#fafafa] disabled:opacity-50 cursor-pointer transition-colors"
+                      >
+                        <BookOpen className="h-3.5 w-3.5" />
+                        Trust SOP
+                      </button>
+                      <button
+                        onClick={() => setShowInterview(true)}
+                        disabled={resolving}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-[#22d3ee]/5 border border-[#22d3ee]/20 text-[#22d3ee] text-[12px] font-semibold rounded-[6px] hover:bg-[#22d3ee]/10 disabled:opacity-50 cursor-pointer transition-colors"
+                      >
+                        <Mic className="h-3.5 w-3.5" />
+                        Ask Engineer
+                      </button>
+                    </div>
+
+                    {/* Interview panel */}
+                    {showInterview && (
+                      <div className="border-t border-[#27272a] pt-4 flex flex-col gap-3 animate-slide-up">
+                        {result.human_question && (
+                          <div className="rounded-[6px] border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+                            <p className="text-[12px] text-amber-400/90 mono italic">
+                              {result.human_question}
+                            </p>
+                          </div>
+                        )}
+                        <textarea
+                          value={humanResponse}
+                          onChange={(e) => setHumanResponse(e.target.value)}
+                          rows={3}
+                          placeholder="Enter tacit knowledge or engineer workaround details…"
+                          className="w-full bg-[#09090b] border border-[#27272a] rounded-[4px] px-3 py-2 text-[12px] text-[#fafafa] placeholder-[#3f3f46] mono resize-none focus:border-[#22d3ee] transition-colors"
+                        />
+                        <div className="flex gap-2 justify-end">
+                          <button
+                            onClick={() => handleResolve("human")}
+                            disabled={resolving || !humanResponse.trim()}
+                            className="px-4 py-1.5 bg-[#22d3ee] text-[#09090b] font-semibold text-[12px] rounded-[6px] hover:bg-[#67e8f9] disabled:opacity-40 cursor-pointer transition-colors"
+                          >
+                            Submit Rule
+                          </button>
+                          <button
+                            onClick={() => setShowInterview(false)}
+                            className="px-4 py-1.5 bg-[#18181b] border border-[#27272a] text-[#71717a] text-[12px] rounded-[6px] hover:text-[#fafafa] cursor-pointer transition-colors"
+                          >
+                            Cancel
+                          </button>
                         </div>
                       </div>
-                    ) : (
-                      <span className="text-xs text-[#475569]">No active physics telemetry.</span>
+                    )}
+                  </div>
+                )}
+
+              {/* Resolved conflict */}
+              {conflictResolution && (
+                <div className="card px-5 py-3 flex items-start gap-3 animate-fade-in">
+                  <CheckCircle2 className="h-4 w-4 text-[#22d3ee] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-[12px] font-semibold text-[#fafafa]">
+                      Conflict resolved —{" "}
+                      <span className="text-[#22d3ee]">
+                        {conflictResolution.toUpperCase()}
+                      </span>{" "}
+                      wins
+                    </p>
+                    {conflictResolution === "human" &&
+                      resolutionDetails?.structured_rule && (
+                        <div className="mt-2 rounded-[6px] border border-emerald-500/20 bg-emerald-500/5 px-3 py-2">
+                          <p className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider mb-1">
+                            Tacit Rule Captured
+                          </p>
+                          <p className="text-[11px] text-emerald-300 mono italic">
+                            &ldquo;{resolutionDetails.structured_rule.rule_text}&rdquo;
+                          </p>
+                        </div>
+                      )}
+                    {resolutionDetails?.healed_nodes && (
+                      <p className="text-[11px] text-[#71717a] mt-1.5">
+                        Knowledge graph self-healing applied. View changes on the{" "}
+                        <strong className="text-[#fafafa]">Graph</strong> page.
+                      </p>
                     )}
                   </div>
                 </div>
               )}
 
+              {/* Work order notice */}
               {result.work_order && (
-                <div className="p-4 bg-[#0d1527] border border-[#1e293b] rounded-lg text-xs text-slate-400">
-                  🛠️ A maintenance work order has been generated automatically. Navigate to the <strong className="text-white">Work Orders & Alerts</strong> page to view full details.
+                <div className="flex items-center gap-3 px-4 py-3 rounded-[6px] border border-[#27272a] bg-[#18181b] text-[12px] text-[#71717a]">
+                  <Cpu className="h-3.5 w-3.5 text-[#52525b] shrink-0" />
+                  A maintenance work order was auto-generated. View it on the{" "}
+                  <strong className="text-[#fafafa] ml-1">Maintenance</strong>{" "}
+                  page.
                 </div>
               )}
             </div>

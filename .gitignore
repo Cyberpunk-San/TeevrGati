@@ -35,3 +35,4 @@ backend/models/*.pkl
 
 # Env
 .env
+plan.pdf

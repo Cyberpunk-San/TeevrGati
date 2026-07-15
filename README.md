@@ -56,24 +56,24 @@ TeevrGati connects three distinct industrial domains to manage asset health and 
 ### 1. Ingestion Pipeline
 * **Visual Router**: Automatically classifies documents and selects the best parsing engine.
 * **Complex Tabular Parsing**: Extracts technical parameters using LayoutLMv3 layout detection.
-* **Engineering Drawings (P&ID)**: Extracts structured equipment numbers and layout links using PaddleOCR.
-* **Scanned OCR Ingestion**: Processes scanned manuals and papers using Tesseract OCR.
+* **Engineering Drawings (P&ID)**: Extracts structured equipment numbers and layout links using Gemini Vision API with PyMuPDF/regex fallback (no PaddleOCR dependency on Python 3.14).
+* **Synthetic Refinery Data**: Pre-loaded with synthetic BPCL Mathura Refinery data (Pump P-201 manuals, SOPs with deliberate contradictions, SAP PM work orders, RCA reports).
 
 ### 2. Physical Waveform Simulator
+* **4-Class Bearing Fault Model**: Trained on synthetic CWRU-like bearing data (Healthy, Inner Race Fault, Outer Race Fault, Ball Defect) with 100% test accuracy.
 * **Frequency Analysis**: Computes Fast Fourier Transforms (FFT) to extract spectral peaks.
 * **Envelope Analysis**: Applies the Hilbert Transform for bearing fault isolation.
-* **Anomaly Classification**: Maps data to real predictive maintenance datasets (`Large_Industrial_Pump_Maintenance_Dataset.csv`, `equipment_anomaly_data.csv`, `ai4i2020.csv`) with Isolation Forest anomaly boundaries.
 
 ### 3. Truth Engine & Self-Healing Graph
-* **Conflict Resolution**: Resolves discrepancies between old manuals and live sensor metrics (prioritizing live physics with confidence $\ge 80\%$).
+* **Conflict Resolution**: Resolves discrepancies between old manuals (e.g. 2019 SOP vs 2024 SOP) and live sensor metrics (prioritizing live physics with confidence $\ge 80\%$).
+* **Multi-Agent Debate**: Orchestrates a debate between Historian (RAG+KG), Physicist (Sensor Telemetry), and Operator (Tacit Knowledge) agents for consensus.
 * **Self-Healing Mechanics**: Updates outdated nodes, captures reconciliation timestamps, and links outdated documents to current rules with `REPLACED_BY` relationships.
 
 ### 4. Advanced UX & Field Utilities
-* **🎤 Field Voice Input**: Web Speech API integration for hands-free query execution on mobile devices.
-* **⏳ Document Provenance Display**: Real-time status cards showing document age, verification timestamps, and active/outdated status.
-* **📄 Live SOP Drop**: Drag-and-drop ingestion interface that parses PDF uploads and updates the graph live.
-* **⛓️ Traversal Path Proof**: Multi-hop path visualizer detailing the exact chain of knowledge nodes traversed during reasoning.
-* **🛡️ Safety Compliance Gap Detection**: Verifies action plans against safety protocols (LOTO, grounding, PPE, ventilation) and displays warning alerts for missing safety steps.
+* **🔔 Live Push Notifications**: Proactive `ntfy.sh` integration for real-time mobile alerts when anomalous faults are detected.
+* **🎤 Tacit Knowledge Interview**: `/api/tacit/interview` API endpoint provides a 5-question guided exit interview to capture unwritten operator knowledge.
+* **🛡️ Safety Compliance Gap Detection**: Verifies action plans against safety protocols (e.g., OISD-105) and displays warning alerts for missing safety steps.
+* **📈 Knowledge Benchmark**: Comprehensive 15-question suite measuring RAG vs Keyword retrieval latency and recall.
 
 ---
 
@@ -89,18 +89,19 @@ teevrgati/
 │   ├── ingestion/
 │   │   ├── parser.py            # Routing parser
 │   │   ├── clean_text.py        # Digital PDF parser
-│   │   ├── scanned_ocr.py       # Tesseract scanner
-│   │   └── drawing_parser.py    # PaddleOCR schematic parsing
+│   │   └── drawing_parser.py    # Gemini Vision API schematic parsing (PaddleOCR removed)
 │   ├── kg/
 │   │   └── knowledge_graph.py   # NetworkX ontology builder & graph database
 │   ├── luigi_ears/
 │   │   ├── vibration_tools.py   # Hilbert Transform envelope & FFT analyzer
 │   │   └── work_order_gen.py    # LOTO safety work order generation
 │   ├── orchestrator/
-│   │   ├── orchestrator.py      # Core agent routing & conflict detection
+│   │   ├── orchestrator.py      # Core agent routing, multi-agent debate, & conflict detection
+│   │   ├── push_engine.py       # ntfy.sh real-time push notifications
 │   │   ├── resolution_engine.py # Auto-resolution & self-healing rules
 │   │   └── tacit_agent.py       # Operator tacit knowledge capture
 │   └── server.py                # Zero-dependency REST API server (Port 8000)
+├── benchmark.py                 # 15-Question evaluation suite
 ├── frontend-next/               # Next.js React TSX GSAP Web Portal
 │   ├── app/
 │   │   ├── components/          # Reusable visual components (Voice, Badges, Drop, Paths)
@@ -110,7 +111,6 @@ teevrgati/
 │   │   ├── page.tsx             # Main Diagnostics Console
 │   │   └── layout.tsx           # Global layout & sidebar layout mount
 │   └── package.json
-├── maintenance_analysis.ipynb   # Feature engineering & anomaly analysis notebook
 └── requirements.txt             # Python requirements
 ```
 

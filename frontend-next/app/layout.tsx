@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
 import "./globals.css";
 import NavigationWrapper from "./components/NavigationWrapper";
 
@@ -15,8 +14,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TeevrGati - Self-Healing Intelligence",
-  description: "Closed-loop decision-support system connecting manuals, sensor telemetry, and operator tacit knowledge.",
+  title: "TeevrGati · BPCL Mathura Refinery",
+  description:
+    "AI diagnostics platform for BPCL Mathura Refinery — closed-loop decision support connecting manuals, sensor telemetry, and operator tacit knowledge.",
+  themeColor: "#09090b",
   manifest: "/manifest.json",
 };
 
@@ -26,8 +27,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-[#0b0f19] text-[#e2e8f0]">
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <head>
+        <meta name="color-scheme" content="dark" />
+      </head>
+      <body className="min-h-full flex flex-col bg-[#09090b] text-[#fafafa]">
         <NavigationWrapper>{children}</NavigationWrapper>
       </body>
     </html>

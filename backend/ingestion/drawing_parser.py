@@ -1,81 +1,230 @@
-import fitz
-from PIL import Image
+"""
+drawing_parser.py — P&ID / Engineering Drawing Parser
+Replaces broken PaddleOCR (incompatible with Python 3.14) with two approaches:
+  1. PRIMARY: Gemini Vision API — describes P&ID elements from image, returns JSON equipment tags
+  2. FALLBACK: PyMuPDF text extraction + regex equipment tag detection (works on text-based PDFs)
+"""
+import os
 import re
+import base64
+import json
+import fitz  # PyMuPDF
+from PIL import Image
+from typing import Dict, List, Optional
 
-# Initialize PaddleOCR once
-ocr = None
+# Equipment tag pattern: P-201, VLV-101, C-101, T-301, E-401, etc.
+EQUIPMENT_TAG_PATTERN = re.compile(
+    r'\b([A-Z]{1,4}-\d{2,4}[A-Z]?)\b'
+)
 
-def get_ocr():
-    global ocr
-    if ocr is None:
-        # Lazy import paddleocr to prevent import crashes when it is not installed
-        from paddleocr import PaddleOCR
-        ocr = PaddleOCR(use_angle_cls=True, lang='en')  # Angle classification for rotated docs
-    return ocr
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
-def parse_drawing(file_path):
+
+def _call_gemini_vision(image_bytes: bytes, mime_type: str = "image/png") -> Optional[str]:
     """
-    Extracts equipment tags from P&IDs using PaddleOCR.
-    Returns a list of {'tag': 'VLV-101', 'location': (x, y), 'context': 'text near box'}
+    Send an image to Gemini Vision API and get equipment tag annotations back as JSON.
+    Returns raw JSON string or None if unavailable.
+    """
+    if not GEMINI_API_KEY:
+        return None
+
+    try:
+        import urllib.request
+        b64_image = base64.b64encode(image_bytes).decode("utf-8")
+        payload = {
+            "contents": [{
+                "parts": [
+                    {
+                        "text": (
+                            "You are an expert P&ID (Piping and Instrumentation Diagram) interpreter "
+                            "for a petroleum refinery. Analyze this engineering drawing and extract ALL "
+                            "equipment tags, instrument tags, and valve tags visible. "
+                            "Return ONLY a valid JSON object with this structure:\n"
+                            "{\n"
+                            "  \"equipment_tags\": [\n"
+                            "    {\"tag\": \"P-201\", \"type\": \"Pump\", \"description\": \"Crude Oil Transfer Pump\"},\n"
+                            "    {\"tag\": \"V-201A\", \"type\": \"Valve\", \"description\": \"Suction Isolation Valve\"}\n"
+                            "  ],\n"
+                            "  \"connections\": [\n"
+                            "    {\"from\": \"P-201\", \"to\": \"V-201B\", \"line\": \"Process line 6\\\"\"}\n"
+                            "  ],\n"
+                            "  \"drawing_type\": \"P&ID\",\n"
+                            "  \"unit\": \"Crude Distillation Unit\"\n"
+                            "}\n"
+                            "If you cannot read equipment tags clearly, make your best inference from "
+                            "standard refinery P&ID conventions. Return ONLY the JSON, no other text."
+                        )
+                    },
+                    {
+                        "inline_data": {
+                            "mime_type": mime_type,
+                            "data": b64_image
+                        }
+                    }
+                ]
+            }],
+            "generationConfig": {"temperature": 0.1}
+        }
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+            text = result["candidates"][0]["content"]["parts"][0]["text"]
+            # Strip markdown code fences if present
+            text = re.sub(r'^```(?:json)?\s*', '', text.strip(), flags=re.MULTILINE)
+            text = re.sub(r'\s*```$', '', text.strip(), flags=re.MULTILINE)
+            return text.strip()
+    except Exception as e:
+        print(f"⚠️ Gemini Vision call failed: {e}")
+        return None
+
+
+def _extract_tags_with_regex(text: str) -> List[Dict]:
+    """Regex-based equipment tag extraction from text."""
+    tags = []
+    seen = set()
+    for match in EQUIPMENT_TAG_PATTERN.finditer(text):
+        tag = match.group(1)
+        if tag in seen:
+            continue
+        seen.add(tag)
+        # Infer type from prefix
+        prefix = re.match(r'^([A-Z]+)', tag).group(1)
+        type_map = {
+            'P': 'Pump', 'C': 'Compressor', 'T': 'Tank/Tower', 'E': 'Heat Exchanger',
+            'V': 'Valve', 'VLV': 'Valve', 'FCV': 'Flow Control Valve', 'LCV': 'Level Control Valve',
+            'PCV': 'Pressure Control Valve', 'TCV': 'Temperature Control Valve',
+            'PSV': 'Pressure Safety Valve', 'FI': 'Flow Indicator', 'PI': 'Pressure Indicator',
+            'TI': 'Temperature Indicator', 'LI': 'Level Indicator', 'XI': 'Vibration Indicator',
+            'FIC': 'Flow Indicator Controller', 'PIC': 'Pressure Indicator Controller',
+            'TIC': 'Temperature Indicator Controller', 'LIC': 'Level Indicator Controller',
+            'MCC': 'Motor Control Centre', 'XS': 'Vibration Switch', 'TS': 'Temperature Switch'
+        }
+        eq_type = type_map.get(prefix, 'Equipment')
+        tags.append({
+            "tag": tag,
+            "type": eq_type,
+            "description": f"{eq_type} {tag}",
+            "source": "regex"
+        })
+    return tags
+
+
+def parse_drawing(file_path: str) -> Dict:
+    """
+    Main entry point. Parses P&ID / engineering drawings.
+    Uses Gemini Vision (primary) or regex fallback.
+    
+    Returns:
+        {
+            'pages': [...],
+            'metadata': {...},
+            'parse_method': 'gemini_vision' | 'text_regex' | 'fallback',
+            'equipment_tags': [...],
+            'connections': [...],
+            'drawing_type': str,
+            'success': bool
+        }
     """
     results = {
         'pages': [],
         'metadata': {},
-        'parse_method': 'paddleocr',
+        'parse_method': 'unknown',
         'equipment_tags': [],
-        'lines': []  # For future relationship mapping
+        'connections': [],
+        'drawing_type': 'Engineering Drawing',
+        'success': False,
+        'source_file': file_path
     }
-    
-    try:
-        paddle_ocr_instance = get_ocr()
-        doc = fitz.open(file_path)
-        results['metadata'] = doc.metadata or {}
-        
-        for page_num, page in enumerate(doc):
-            # Render page to image
-            pix = page.get_pixmap(dpi=200)
-            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-            
-            # Convert to path or pass img array/PIL to PaddleOCR
-            # PaddleOCR.ocr can accept path or numpy array. Since we rendered to PIL, 
-            # we should convert it to numpy array or save it as temporary file.
-            # Convert PIL Image to numpy array:
-            import numpy as np
-            img_np = np.array(img)
-            
-            # PaddleOCR returns text with bounding boxes
-            ocr_result = paddle_ocr_instance.ocr(img_np, cls=True)
-            
-            # Extract text and positions
-            page_tags = []
-            if ocr_result and ocr_result[0]:
-                for line in ocr_result[0]:
-                    bbox = line[0]  # [[x1,y1], [x2,y2], [x3,y3], [x4,y4]]
-                    text = line[1][0]  # The actual text
-                    confidence = line[1][1]
-                    
-                    # Simple heuristic: equipment tags are often alphanumeric with hyphens
-                    # e.g., "P-101", "VLV-302", "COMP-01"
-                    if re.match(r'^[A-Z]{2,4}-[0-9]{2,4}$', text):
-                        page_tags.append({
-                            'tag': text,
-                            'bbox': bbox,
-                            'confidence': confidence
-                        })
-            
-            results['equipment_tags'].extend(page_tags)
-            results['pages'].append({
-                'page_num': page_num + 1,
-                'tags': page_tags,
-                'raw_ocr': ocr_result
-            })
-        
-        doc.close()
+
+    if not os.path.exists(file_path):
+        results['error'] = f"File not found: {file_path}"
         return results
-        
-    except Exception as e:
-        return {
-            'error': f'Drawing parsing failed: {e}',
-            'fallback_used': True,
-            'equipment_tags': []
+
+    try:
+        doc = fitz.open(file_path)
+        results['metadata'] = {
+            'title': doc.metadata.get('title', os.path.basename(file_path)),
+            'page_count': len(doc),
+            'source_file': file_path
         }
+
+        all_tags = []
+        all_connections = []
+        all_text = []
+        parse_method = 'text_regex'
+
+        for page_num, page in enumerate(doc):
+            # ── Try Gemini Vision (primary for image-based drawings) ──────────
+            if GEMINI_API_KEY:
+                try:
+                    pix = page.get_pixmap(dpi=150)
+                    img_bytes = pix.tobytes("png")
+
+                    # Only call Vision if page is likely an image/drawing (few text chars)
+                    text_len = len(page.get_text().strip())
+                    is_drawing = text_len < 200  # Image-heavy page
+
+                    if is_drawing:
+                        gemini_json_str = _call_gemini_vision(img_bytes, "image/png")
+                        if gemini_json_str:
+                            parsed = json.loads(gemini_json_str)
+                            page_tags = parsed.get("equipment_tags", [])
+                            page_connections = parsed.get("connections", [])
+                            for t in page_tags:
+                                t["page"] = page_num + 1
+                                t["source"] = "gemini_vision"
+                            all_tags.extend(page_tags)
+                            all_connections.extend(page_connections)
+                            parse_method = 'gemini_vision'
+                            results['pages'].append({
+                                'page': page_num + 1,
+                                'tags_found': len(page_tags),
+                                'parse_method': 'gemini_vision'
+                            })
+                            continue
+                except Exception as e:
+                    print(f"⚠️ Gemini Vision failed on page {page_num+1}: {e}")
+
+            # ── Fallback: Text extraction + regex ────────────────────────────
+            page_text = page.get_text()
+            all_text.append(page_text)
+            page_tags = _extract_tags_with_regex(page_text)
+            for t in page_tags:
+                t["page"] = page_num + 1
+            all_tags.extend(page_tags)
+            results['pages'].append({
+                'page': page_num + 1,
+                'text': page_text,
+                'tags_found': len(page_tags),
+                'parse_method': 'text_regex'
+            })
+
+        # De-duplicate tags (keep first occurrence per tag ID)
+        seen = set()
+        unique_tags = []
+        for t in all_tags:
+            tag_id = t.get('tag', '')
+            if tag_id and tag_id not in seen:
+                seen.add(tag_id)
+                unique_tags.append(t)
+
+        results['equipment_tags'] = unique_tags
+        results['connections'] = all_connections
+        results['parse_method'] = parse_method
+        results['full_text'] = "\n".join(all_text)
+        results['success'] = True
+
+        print(f"✅ Drawing parser: {len(unique_tags)} tags extracted from {os.path.basename(file_path)} (method: {parse_method})")
+        return results
+
+    except Exception as e:
+        results['error'] = str(e)
+        results['parse_method'] = 'error'
+        print(f"❌ Drawing parser error for {file_path}: {e}")
+        return results

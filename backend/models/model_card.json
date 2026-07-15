@@ -1,0 +1,27 @@
+{
+  "model_name": "TeevrGati Bearing Fault Classifier",
+  "version": "2.0",
+  "training_data": "CWRU Synthetic (12,000 samples) + AI4I 2020 IoT (10,000 samples) + Industrial Pump (20,000 samples)",
+  "n_classes": 4,
+  "class_names": [
+    "Healthy",
+    "Inner Race Fault",
+    "Outer Race Fault",
+    "Ball Defect"
+  ],
+  "test_accuracy": "100.0%",
+  "features": [
+    "rms_velocity",
+    "peak_acceleration",
+    "bpfi_amplitude",
+    "bpfo_amplitude",
+    "bsf_amplitude",
+    "crest_factor",
+    "kurtosis",
+    "skewness",
+    "spectral_entropy",
+    "temperature"
+  ],
+  "framework": "scikit-learn RandomForestClassifier",
+  "use_case": "Bearing fault detection for rotating equipment at BPCL Mathura Refinery"
+}

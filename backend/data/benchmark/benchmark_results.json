@@ -1,0 +1,296 @@
+{
+  "timestamp": "2026-07-16 00:14:00",
+  "total_queries": 15,
+  "avg_teevrgati_recall": 0.4,
+  "avg_baseline_recall": 0.6213,
+  "avg_teevrgati_latency_s": 15.889,
+  "avg_baseline_latency_s": 0.08,
+  "recall_improvement_pp": -22.1,
+  "individual_results": [
+    {
+      "q_num": 1,
+      "query": "What is the maximum safe vibration limit for pump P-201 per ISO standard?",
+      "category": "Equipment Specification",
+      "difficulty": "Easy",
+      "expected_keywords": [
+        "7.1",
+        "zone",
+        "iso",
+        "mm/s",
+        "rms"
+      ],
+      "teevrgati_recall": 0.6,
+      "baseline_recall": 0.68,
+      "teevrgati_latency_s": 8.473,
+      "baseline_latency_s": 0.08,
+      "improvement": -8.0,
+      "conflict_detected": true
+    },
+    {
+      "q_num": 2,
+      "query": "What is the LOTO procedure for isolating P-201 before bearing replacement?",
+      "category": "Safety Procedure",
+      "difficulty": "Medium",
+      "expected_keywords": [
+        "lockout",
+        "v-201a",
+        "v-201b",
+        "mcc",
+        "tagout"
+      ],
+      "teevrgati_recall": 0.0,
+      "baseline_recall": 0.68,
+      "teevrgati_latency_s": 5.237,
+      "baseline_latency_s": 0.08,
+      "improvement": -68.0,
+      "conflict_detected": true
+    },
+    {
+      "q_num": 3,
+      "query": "At what operating hours should bearings on P-201 be replaced?",
+      "category": "Maintenance Interval",
+      "difficulty": "Easy",
+      "expected_keywords": [
+        "8000",
+        "8,000",
+        "hour",
+        "bearing",
+        "replace"
+      ],
+      "teevrgati_recall": 0.6,
+      "baseline_recall": 0.6,
+      "teevrgati_latency_s": 4.805,
+      "baseline_latency_s": 0.08,
+      "improvement": 0.0,
+      "conflict_detected": true
+    },
+    {
+      "q_num": 4,
+      "query": "What PPE is mandatory for crude oil pump maintenance at BPCL Mathura?",
+      "category": "Safety Compliance",
+      "difficulty": "Easy",
+      "expected_keywords": [
+        "ppe",
+        "gloves",
+        "face shield",
+        "coverall",
+        "safety"
+      ],
+      "teevrgati_recall": 0.2,
+      "baseline_recall": 0.68,
+      "teevrgati_latency_s": 33.38,
+      "baseline_latency_s": 0.08,
+      "improvement": -48.0,
+      "conflict_detected": false
+    },
+    {
+      "q_num": 5,
+      "query": "What is the bearing inner race fault frequency for P-201?",
+      "category": "Vibration Diagnostics",
+      "difficulty": "Hard",
+      "expected_keywords": [
+        "103",
+        "hz",
+        "bpfi",
+        "bearing",
+        "inner"
+      ],
+      "teevrgati_recall": 0.4,
+      "baseline_recall": 0.6,
+      "teevrgati_latency_s": 4.82,
+      "baseline_latency_s": 0.08,
+      "improvement": -20.0,
+      "conflict_detected": true
+    },
+    {
+      "q_num": 6,
+      "query": "What torque specification applies to coupling bolts on P-201 in the 2024 revision?",
+      "category": "Specification Conflict",
+      "difficulty": "Hard",
+      "expected_keywords": [
+        "95",
+        "nm",
+        "coupling",
+        "torque",
+        "2024"
+      ],
+      "teevrgati_recall": 0.8,
+      "baseline_recall": 0.6,
+      "teevrgati_latency_s": 29.915,
+      "baseline_latency_s": 0.08,
+      "improvement": 20.0,
+      "conflict_detected": false
+    },
+    {
+      "q_num": 7,
+      "query": "Why was the LOTO sequence on P-201 changed in 2024?",
+      "category": "Incident Learning",
+      "difficulty": "Hard",
+      "expected_keywords": [
+        "discharge",
+        "reverse flow",
+        "seal",
+        "sop",
+        "revised"
+      ],
+      "teevrgati_recall": 0.2,
+      "baseline_recall": 0.68,
+      "teevrgati_latency_s": 41.904,
+      "baseline_latency_s": 0.08,
+      "improvement": -48.0,
+      "conflict_detected": false
+    },
+    {
+      "q_num": 8,
+      "query": "What mechanical seal type and flush plan does P-201 use?",
+      "category": "Equipment Specification",
+      "difficulty": "Medium",
+      "expected_keywords": [
+        "john crane",
+        "2800",
+        "plan 53b",
+        "barrier",
+        "seal"
+      ],
+      "teevrgati_recall": 0.2,
+      "baseline_recall": 0.6,
+      "teevrgati_latency_s": 35.974,
+      "baseline_latency_s": 0.08,
+      "improvement": -40.0,
+      "conflict_detected": false
+    },
+    {
+      "q_num": 9,
+      "query": "What is cavitation and how is it detected on P-201?",
+      "category": "Fault Diagnosis",
+      "difficulty": "Medium",
+      "expected_keywords": [
+        "cavitation",
+        "npsh",
+        "vibration",
+        "vane pass",
+        "flow"
+      ],
+      "teevrgati_recall": 0.4,
+      "baseline_recall": 0.6,
+      "teevrgati_latency_s": 32.043,
+      "baseline_latency_s": 0.08,
+      "improvement": -20.0,
+      "conflict_detected": false
+    },
+    {
+      "q_num": 10,
+      "query": "What are the OISD-105 requirements for confined space gas testing?",
+      "category": "Regulatory Compliance",
+      "difficulty": "Medium",
+      "expected_keywords": [
+        "confined space",
+        "oisd",
+        "lel",
+        "ventilation",
+        "permit"
+      ],
+      "teevrgati_recall": 0.4,
+      "baseline_recall": 0.6,
+      "teevrgati_latency_s": 5.475,
+      "baseline_latency_s": 0.08,
+      "improvement": -20.0,
+      "conflict_detected": true
+    },
+    {
+      "q_num": 11,
+      "query": "What caused the P-201 seal failure incident in November 2022?",
+      "category": "Incident Learning",
+      "difficulty": "Hard",
+      "expected_keywords": [
+        "reverse flow",
+        "loto",
+        "discharge",
+        "sequence",
+        "seal"
+      ],
+      "teevrgati_recall": 0.2,
+      "baseline_recall": 0.6,
+      "teevrgati_latency_s": 14.47,
+      "baseline_latency_s": 0.08,
+      "improvement": -40.0,
+      "conflict_detected": false
+    },
+    {
+      "q_num": 12,
+      "query": "What SAP material number is used for SKF 6316 bearing at BPCL Mathura?",
+      "category": "Spare Parts",
+      "difficulty": "Hard",
+      "expected_keywords": [
+        "10045612",
+        "skf",
+        "6316",
+        "sap",
+        "material"
+      ],
+      "teevrgati_recall": 0.8,
+      "baseline_recall": 0.6,
+      "teevrgati_latency_s": 5.139,
+      "baseline_latency_s": 0.08,
+      "improvement": 20.0,
+      "conflict_detected": false
+    },
+    {
+      "q_num": 13,
+      "query": "What is the grounding requirement per OISD-GDN-180 for compressor maintenance?",
+      "category": "Regulatory Compliance",
+      "difficulty": "Hard",
+      "expected_keywords": [
+        "grounding",
+        "oisd",
+        "ohm",
+        "bond",
+        "electrostatic"
+      ],
+      "teevrgati_recall": 0.4,
+      "baseline_recall": 0.6,
+      "teevrgati_latency_s": 5.224,
+      "baseline_latency_s": 0.08,
+      "improvement": -20.0,
+      "conflict_detected": false
+    },
+    {
+      "q_num": 14,
+      "query": "What is the minimum standby run duration for standby pumps at BPCL?",
+      "category": "Maintenance Procedure",
+      "difficulty": "Medium",
+      "expected_keywords": [
+        "standby",
+        "2 hour",
+        "two hour",
+        "rotation",
+        "run"
+      ],
+      "teevrgati_recall": 0.4,
+      "baseline_recall": 0.6,
+      "teevrgati_latency_s": 5.397,
+      "baseline_latency_s": 0.08,
+      "improvement": -20.0,
+      "conflict_detected": false
+    },
+    {
+      "q_num": 15,
+      "query": "What vibration signature indicates bearing outer race defect on P-201?",
+      "category": "Vibration Diagnostics",
+      "difficulty": "Hard",
+      "expected_keywords": [
+        "68",
+        "hz",
+        "bpfo",
+        "outer race",
+        "bearing"
+      ],
+      "teevrgati_recall": 0.4,
+      "baseline_recall": 0.6,
+      "teevrgati_latency_s": 6.086,
+      "baseline_latency_s": 0.08,
+      "improvement": -20.0,
+      "conflict_detected": false
+    }
+  ]
+}

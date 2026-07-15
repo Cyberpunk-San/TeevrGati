@@ -81,33 +81,49 @@ def train_predictive_model():
 def predict_fault_probability(features_dict: dict) -> float:
     """
     Predicts the probability of asset failure based on telemetry metrics.
+    Supports both binary (old) and 4-class (CWRU) models.
+    Returns failure probability as float (0.0–1.0).
     """
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     model_path = os.path.join(base_dir, 'backend', 'models', 'fault_predictor.pkl')
-    
+
     if not os.path.exists(model_path):
-        # Auto-train if model doesn't exist
         print("[WARNING] Model not found. Training now...")
         train_predictive_model()
-        
+
     try:
         payload = joblib.load(model_path)
         model = payload['model']
         features_list = payload['features']
-        
-        # Prepare inputs aligning to standard order with proper feature names to avoid warnings
+        class_names = payload.get('class_names', None)
+        n_classes = payload.get('n_classes', 2)
+
+        # Prepare inputs
         input_dict = {}
         for feat in features_list:
             input_dict[feat] = [float(features_dict.get(feat, 0.0))]
         df_input = pd.DataFrame(input_dict)
-            
-        # Run inference
-        prob = model.predict_proba(df_input)[0][1]
-        return float(prob)
+
+        proba = model.predict_proba(df_input)[0]
+
+        if n_classes == 4 and class_names:
+            # 4-class model: class 0 = Healthy, 1-3 = fault classes
+            # Fault probability = 1 - P(Healthy)
+            healthy_idx = class_names.index("Healthy") if "Healthy" in class_names else 0
+            fault_prob = float(1.0 - proba[healthy_idx])
+            # Log the predicted class for richer output
+            pred_class_idx = int(proba.argmax())
+            pred_class = class_names[pred_class_idx]
+            pred_conf = float(proba[pred_class_idx])
+            print(f"[CWRU Model] Predicted: {pred_class} ({pred_conf:.1%} confidence) | Fault prob: {fault_prob:.1%}")
+            return fault_prob
+        else:
+            # Binary model: class 1 = fault
+            return float(proba[1])
 
     except Exception as e:
         print(f"[ERROR] Fault prediction inference failed: {e}")
-        # Default safety fallback based on raw vibration heuristic
+        # Heuristic fallback based on raw vibration
         vibration = float(features_dict.get('vibration', 0.0))
         if vibration > 11.2:
             return 0.95
@@ -117,5 +133,40 @@ def predict_fault_probability(features_dict: dict) -> float:
             return 0.30
         return 0.05
 
+
+def predict_fault_class(features_dict: dict) -> dict:
+    """
+    Returns full 4-class prediction dict: {class, confidence, fault_probability, all_probs}
+    Uses the CWRU model if available, falls back to binary.
+    """
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    model_path = os.path.join(base_dir, 'backend', 'models', 'fault_predictor.pkl')
+
+    try:
+        payload = joblib.load(model_path)
+        model = payload['model']
+        features_list = payload['features']
+        class_names = payload.get('class_names', ["Healthy", "Faulty"])
+        n_classes = payload.get('n_classes', 2)
+
+        input_dict = {feat: [float(features_dict.get(feat, 0.0))] for feat in features_list}
+        df_input = pd.DataFrame(input_dict)
+
+        proba = model.predict_proba(df_input)[0]
+        pred_idx = int(proba.argmax())
+
+        return {
+            "predicted_class": class_names[pred_idx],
+            "confidence": round(float(proba[pred_idx]), 4),
+            "fault_probability": round(float(1.0 - proba[0]) if "Healthy" in class_names else float(proba[1]), 4),
+            "all_probabilities": {cn: round(float(p), 4) for cn, p in zip(class_names, proba)},
+            "n_classes": n_classes,
+            "model_source": payload.get("data_source", "Unknown")
+        }
+    except Exception as e:
+        return {"error": str(e), "predicted_class": "Unknown", "fault_probability": 0.5}
+
+
 if __name__ == "__main__":
     train_predictive_model()
+

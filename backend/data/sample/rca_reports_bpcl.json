@@ -1,0 +1,172 @@
+[
+  {
+    "report_id": "IIR-BPCL-MTR-2022-019",
+    "date": "2022-11-14",
+    "asset_id": "P-201",
+    "incident_title": "P-201 Mechanical Seal Failure Causing Process Fluid Release",
+    "severity": "HIGH",
+    "incident_description": "P-201 mechanical seal failed catastrophically at 02:30 hrs on 12-Nov-2022. Crude oil released at approximately 15 LPM for 8 minutes before operator isolation. Approx. 120 litres of crude oil spilled in pump bay. No personnel injuries. Fire watch mobilized. Plant fire brigade attended. Environmental report filed.",
+    "root_cause": "Reverse flow through pump during isolation allowed crude oil to flash across seal faces. Post-incident investigation confirmed that the LOTO sequence used was suction-first (STEP A then B per Rev.2 SOP), which caused high-pressure discharge fluid to reverse through the pump before the discharge valve was closed. This overpressured the seal chamber and caused catastrophic seal face fracture.",
+    "contributing_factors": [
+      "LOTO sequence in SOP-P201-MAINT-001 Rev.2 (2019) was suction-first — incorrect for this pump configuration",
+      "Operator followed documented procedure exactly — procedure was at fault, not the operator",
+      "API 610-12th Edition (2021) recommends discharge-first isolation for back-pressure protection",
+      "Seal barrier fluid pressure alarm was not functioning (failed transmitter PT-201-SL)"
+    ],
+    "corrective_actions": [
+      "Revised LOTO sequence: discharge valve first, then suction — issued as SOP Rev.3 (Jan 2023)",
+      "Replaced seal barrier fluid pressure transmitter PT-201-SL",
+      "Added second pressure indicator PI-201-SL as backup",
+      "All operators retrained on revised LOTO sequence — training records in SAP HR",
+      "Emergency spill kit relocated to pump bay (previously 50m away)"
+    ],
+    "recurrence_prevention": "SOP revised to discharge-first LOTO sequence (STEP B then A). Quarterly LOTO drill introduced for all pump operators. Barrier fluid transmitter replaced and added to critical instrument list with monthly function testing. Spill containment bund capacity review initiated.",
+    "lessons_learned": [
+      "Always verify LOTO sequence against latest approved SOP revision — not from memory",
+      "Discharge-first isolation is standard practice for pumps with potential for reverse flow",
+      "Instrument failure (PT-201-SL) masked the seal distress for 3 hours before failure"
+    ],
+    "approved_by": "A.K. Singh, Head Reliability Engineering — BPCL Mathura",
+    "distribution": [
+      "Operations Manager",
+      "Safety Officer",
+      "Mechanical Maintenance",
+      "Process Engineering"
+    ]
+  },
+  {
+    "report_id": "IIR-BPCL-MTR-2023-007",
+    "date": "2023-04-22",
+    "asset_id": "C-101",
+    "incident_title": "C-101 Unplanned Shutdown — Suction Valve Failure, 3rd Stage",
+    "severity": "MEDIUM",
+    "incident_description": "C-101 natural gas compressor tripped on high discharge temperature at 14:15 hrs. Investigation revealed 3rd stage suction valve failure — valve plate fractured. Gas bypass across failed valve caused temperature rise from 165 to 210 degC. High temperature trip protected the machine. Unit 3 gas recovery offline 36 hours.",
+    "root_cause": "Hoerbiger suction valve on 3rd stage cylinder had accumulated 26,200 operating hours against a recommended replacement interval of 20,000 hours. Valve plate material fatigue — crack initiated at bolt hole and propagated across plate. Valve replacement was deferred twice due to lack of spare parts availability.",
+    "contributing_factors": [
+      "Valve replacement deferred at 20,000 hr mark (spare not available — SAP stock-out)",
+      "Deferred maintenance not escalated to Maintenance Manager — stayed as open work order",
+      "No condition monitoring on compressor valves (temperature trending only, no vibration per cylinder)",
+      "Spare parts minimum stock level for Hoerbiger valves was set to 0 — now corrected"
+    ],
+    "corrective_actions": [
+      "All 4 suction valves and 4 discharge valves replaced (complete valve overhaul)",
+      "SAP minimum stock level for Hoerbiger valves set to 2 sets",
+      "Deferred maintenance escalation procedure introduced: 30 days overdue → Maintenance Manager mandatory review",
+      "Cylinder-level temperature monitoring added (4 new thermocouples installed)"
+    ],
+    "recurrence_prevention": "Valve replacement interval reduced to 18,000 hours (10% margin below 20,000 hr limit). Spare valve inventory reviewed for all reciprocating compressors across the refinery. Maintenance deferral tracking added to monthly KPI dashboard for Department Head review.",
+    "lessons_learned": [
+      "Critical spare parts stock-out is a major risk — minimum stock levels must be enforced in SAP",
+      "Deferred maintenance must be formally escalated — cannot remain as passive open WO",
+      "Cylinder-level temperature trending would have given 8–12 hours early warning"
+    ],
+    "approved_by": "V.P. Mishra, Head Maintenance — BPCL Mathura",
+    "distribution": [
+      "Operations",
+      "Maintenance",
+      "Materials Management",
+      "Safety"
+    ]
+  },
+  {
+    "report_id": "IIR-BPCL-MTR-2023-015",
+    "date": "2023-08-30",
+    "asset_id": "T-302",
+    "incident_title": "T-302 Vacuum Column Tray Damage — Water Ingestion Event",
+    "severity": "HIGH",
+    "incident_description": "Water ingestion event at 09:45 hrs caused column tray damage in T-302 vacuum column. 12 of 42 trays damaged by water hammer. Column taken offline for tray replacement. Production loss: 4,800 MT crude throughput over 9-day shutdown. Estimated financial impact: INR 18.5 Crore.",
+    "root_cause": "Cooling water tube failure in overhead condenser E-301 allowed cooling water ingestion into the vacuum column overhead stream. Water accumulated in reflux drum V-301 and was inadvertently pumped back to the column as reflux. At column bottom temperature of 340 degC, water flashed to steam — rapid pressure rise caused hydraulic hammer and tray collapse.",
+    "contributing_factors": [
+      "E-301 cooling water tube had visible wall thinning at last inspection (18 months prior) — not replaced",
+      "Reflux drum V-301 had no water detection (density or conductivity measurement)",
+      "Operator did not check reflux composition when column pressure fluctuated",
+      "No high-differential-pressure alarm across column trays"
+    ],
+    "corrective_actions": [
+      "12 damaged trays replaced (TK-302-TRAY-019 through TK-302-TRAY-030)",
+      "E-301 tube bundle replaced — all tubes with wall thickness less than 2.5mm replaced proactively",
+      "Conductivity analyser installed on V-301 reflux drum to detect water ingestion",
+      "High dP alarm added across column sections 1–3 and 4–7",
+      "Tray thickness measurement frequency increased from annual to 6-monthly"
+    ],
+    "recurrence_prevention": "Heat exchanger tube thickness criterion tightened: replace when below 2.8mm (was 2.0mm). All overhead condensers added to critical equipment list with 6-monthly tube inspection. Water ingestion response procedure added to emergency operating procedures.",
+    "lessons_learned": [
+      "Deferred maintenance on heat exchanger with known tube thinning directly caused the event",
+      "Early detection instruments (conductivity, water cut) are low-cost insurance",
+      "Financial impact of deferred maintenance (18.5 Cr) vastly exceeded repair cost (1.2 Cr)"
+    ],
+    "approved_by": "A.K. Singh and R. Nair (Process Engineering) — BPCL Mathura",
+    "distribution": [
+      "All Department Heads",
+      "Refinery Manager",
+      "HPCL Engineering (Corporate)"
+    ]
+  },
+  {
+    "report_id": "IIR-BPCL-MTR-2024-003",
+    "date": "2024-02-15",
+    "asset_id": "P-202",
+    "incident_title": "P-202 Bearing Failure During Standby Run — Improper Storage",
+    "severity": "MEDIUM",
+    "incident_description": "P-202 (standby crude transfer pump) failed on bearing during monthly test run. Bearing seized within 8 minutes of startup — caused motor overload trip. Post-failure bearing analysis showed fretting corrosion on outer race. P-202 unavailable for 5 days pending bearing replacement. Risk: P-201 was running without standby cover during this period.",
+    "root_cause": "P-202 had been in standby mode for 8 months without being rotated. Static load on bearing at same position for 8 months caused fretting corrosion (false brinelling) at rolling element contact points. Monthly test run procedure did not specify minimum run duration or rotation schedule.",
+    "contributing_factors": [
+      "Standby pump rotation procedure did not exist — only monthly test run (no minimum duration)",
+      "No scheduled bearing rotation (jog) during extended standby periods",
+      "P-202 SAP equipment strategy was copied from P-201 strategy without standby-specific requirements",
+      "Bearing storage period exceeded SKF recommendation of 6 months without rotation"
+    ],
+    "corrective_actions": [
+      "Bearing replaced on P-202 — all four bearings replaced (not just failed bearing)",
+      "Standby pump rotation schedule introduced: 30-minute run every 2 weeks (minimum)",
+      "Monthly test run extended to 2 hours minimum",
+      "All standby pump strategies reviewed and updated in SAP PM",
+      "Bearing shaft rotation log added to standby pump PM checklist"
+    ],
+    "recurrence_prevention": "Standby pump management standard issued (BES-ME-012) covering: minimum run duration, rotation frequency, bearing inspection on startup after 3+ months idle. SAP PM plans updated for all critical standby rotating equipment.",
+    "lessons_learned": [
+      "Static standby is as damaging as overloading — bearings need regular rotation",
+      "Standby equipment strategies need different PM requirements than running equipment",
+      "Single-point failure risk: when standby is unavailable, the risk profile changes significantly"
+    ],
+    "approved_by": "V.P. Mishra, Head Maintenance — BPCL Mathura",
+    "distribution": [
+      "Mechanical Maintenance",
+      "Reliability Engineering",
+      "Operations"
+    ]
+  },
+  {
+    "report_id": "IIR-BPCL-MTR-2024-011",
+    "date": "2024-06-28",
+    "asset_id": "P-201",
+    "incident_title": "P-201 Unplanned Shutdown — Cavitation at Low Tank Level",
+    "severity": "LOW",
+    "incident_description": "P-201 vibration alarm triggered at 23:15 hrs followed by shutdown 12 minutes later. Vibration reached 11.8 mm/s RMS (Zone D — shutdown setpoint). Root cause identified as cavitation. No equipment damage. Pump restarted within 2 hours after tank level restored above minimum.",
+    "root_cause": "Tank TK-101 crude oil level fell to 2.1m (below minimum 2.5m operating level) during a transfer operation. At this level, NPSH available (3.8m) dropped below NPSH required (4.2m) for P-201, causing vapour cavitation. Night shift operator was not aware of the NPSH margin issue at low tank levels.",
+    "contributing_factors": [
+      "No low NPSH margin alarm — only vibration alarm was available",
+      "Tank level low alarm setpoint was 2.0m — below the 2.5m minimum for P-201 operation",
+      "Night shift operator not trained on the relationship between tank level and NPSH",
+      "Operating envelope for P-201 NPSH vs tank level not documented in control room"
+    ],
+    "corrective_actions": [
+      "TK-101 low level alarm setpoint raised from 2.0m to 2.8m for P-201 operation",
+      "NPSH margin calculation curve posted in control room and shared with all operators",
+      "Night shift operator training on NPSH and cavitation added to onboarding checklist",
+      "NPSH margin indicator added to DCS faceplate for P-201"
+    ],
+    "recurrence_prevention": "Operating procedure for TK-101-to-CDU transfer updated with minimum tank level requirement. All pump operating envelopes reviewed for NPSH margin — 3 additional pumps identified with similar risk and alarm setpoints corrected.",
+    "lessons_learned": [
+      "Vibration-only protection is too late — NPSH margin monitoring is the right leading indicator",
+      "Operating envelopes (not just process limits) must be communicated to shift operators",
+      "A low-cost alarm setpoint change prevented a repeat event that could have caused seal damage"
+    ],
+    "approved_by": "R. Gupta, Lead Mechanical Engineer — BPCL Mathura",
+    "distribution": [
+      "Operations",
+      "Mechanical Maintenance",
+      "Process Safety"
+    ]
+  }
+]

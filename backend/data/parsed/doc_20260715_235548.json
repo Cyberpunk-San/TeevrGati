@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "document_id": "doc_20260715_235548",
+  "pages": [
+    {
+      "page_num": 1,
+      "text": "P-201 Crude Oil Transfer Pump \u00b7 Operation & Maintenance Manual\nBPCL Mathura Refinery \u00b7 Rotating Equipment Division\n1. Equipment Description\nAsset Tag: P-201. Type: Horizontal Single-Stage Centrifugal Pump. Service: Crude Oil\nTransfer from Tank Farm TK-101 to CDU Feed. Manufacturer: Flowserve Corporation.\nModel: PVXM 200. Year: 2018. Plant: BPCL Mathura Refinery, Unit 2 \u00b7 Crude\nDistillation Unit (CDU).\n2. Design Parameters\nRated Flow: 850 m3/hr. Rated Head: 145 m. Speed: 1480 RPM. Motor Power: 450 kW.\nOperating Temperature: 40 degC. Suction Pressure: 0.3 bar g. Discharge Pressure: 15.2\nbar g. Specific Gravity: 0.85. Viscosity: 12 cSt. NPSH Required: 4.2 m.\n3. Bearing Specifications\nDrive End Bearing: SKF 6316 (Deep Groove Ball Bearing). Non-Drive End Bearing: SKF\nNU316 (Cylindrical Roller Bearing). Bearing Inner Race Fault Frequency (BPFI): 103.4\nHz at 1480 RPM. Bearing Outer Race Fault Frequency (BPFO): 68.2 Hz at 1480 RPM. Ball\nPass Frequency (BSF): 45.1 Hz. Cage Frequency: 8.9 Hz. Lubrication: Mobil SHC 100\ngrease. Regreasing interval: 1000 hours.\n4. Vibration Acceptance Criteria\nPer ISO 10816-3 and API 610 12th Edition: Zone A (New machine acceptable): 0 to 2.8\nmm/s RMS. Zone B (Long-term operation acceptable): 2.8 to 7.1 mm/s RMS. Zone C (Alarm\nthreshold \u00b7 restricted operation): 7.1 to 11.2 mm/s RMS. Zone D (Danger \u00b7 immediate\nshutdown required): greater than 11.2 mm/s RMS. High vibration alarm setpoint: 7.1\nmm/s. Shutdown setpoint: 11.2 mm/s.\n5. Mechanical Seal\nType: John Crane Type 2800 Double Mechanical Seal. Seal Flush Plan: API Plan 53B\n(pressurized barrier fluid). Barrier Fluid Pressure: 1.5 bar above seal chamber\npressure. Barrier Fluid: Shell Tellus S2 M 46 (hydraulic oil). Seal flush flow rate:\n2\u00b73 LPM. Maximum seal temperature: 80 degC.\n6. Bearing Replacement Interval\nReplace bearings every 8,000 operating hours OR when vibration exceeds 7.1 mm/s RMS\n(Zone C threshold), whichever occurs first. Condition-based replacement recommended\nif bearing temperature exceeds 85 degC or if envelope spectrum shows BPFI/BPFO peaks\ngreater than 3x running speed amplitude.\n7. LOTO (Lockout-Tagout) Procedure\nSTEP 1: Notify Control Room operator and obtain Permit to Work (PTW). STEP 2: Close\nsuction isolation valve V-201A (handwheel, 5 turns CW). STEP 3: Close discharge\nisolation valve V-201B (handwheel, 8 turns CW). STEP 4: De-energize MCC-2 breaker\nCB-201 (Lock with personal padlock). STEP 5: Tag out at both valve handwheels and MCC\nbreaker. STEP 6: Open vent valve V-201C to depressurize casing. STEP 7: Verify zero\nenergy state with calibrated pressure gauge.\n8. Maintenance Schedule\nDaily: Check bearing temperature (max 85 degC), seal flush pressure (1.5 bar),\nvibration level (max 7.1 mm/s). Monthly: Grease bearing housings (15g each).\n",
+      "length": 2783
+    },
+    {
+      "page_num": 2,
+      "text": "Quarterly: Check coupling alignment (max 0.05 mm offset, 0.03 mm angular). Annually:\nInspect mechanical seal, replace O-rings and wear rings. 8000 hours: Complete bearing\nreplacement, clearance check, impeller inspection.\n9. Common Fault Signatures\nCAVITATION: Crackling noise, high vibration at vane pass frequency (VPF = 5x RPM).\nCheck NPSH margin. Throttle discharge slightly. BEARING WEAR: High vibration at BPFI\n(103 Hz) or BPFO (68 Hz). Plan bearing change. MISALIGNMENT: High vibration at 2x RPM\n(49.3 Hz). Check coupling. IMBALANCE: High vibration at 1x RPM (24.7 Hz). Balance\nimpeller. SEAL FAILURE: Barrier fluid level drop more than 10% in 24 hours. Emergency\nshutdown.\n10. Spare Parts List\nSKF 6316 Bearing (Drive End): BPCL SAP Material No. 10045612. SKF NU316 Bearing\n(NDE): BPCL SAP Material No. 10045613. John Crane 2800 Seal Kit: BPCL SAP Material\nNo. 20087234. Coupling Insert (Falk Steelflex T10): BPCL SAP Material No. 30012456.\nImpeller Wear Ring Set: BPCL SAP Material No. 10098765. Minimum stock: 2 complete\nbearing sets always on hand (critical rotating equipment).\n",
+      "length": 1090
+    }
+  ],
+  "metadata": {
+    "format": "PDF 1.7",
+    "title": "",
+    "author": "",
+    "subject": "",
+    "keywords": "",
+    "creator": "",
+    "producer": "",
+    "creationDate": "",
+    "modDate": "",
+    "trapped": "",
+    "encryption": null
+  },
+  "parse_chain": [
+    "file_detection: clean_text",
+    "clean_text_pymupdf"
+  ],
+  "error": null,
+  "fallback_used": false
+}
