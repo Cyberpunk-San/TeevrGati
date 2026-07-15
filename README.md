@@ -140,6 +140,25 @@ Ensure you have the following installed on your system:
    ```bash
    npm install
    ```
+### 4. Configuration & Model Customization
+To configure the API server or customize the AI models:
+1. Open the `.env` file at the root of the project.
+2. Customize the environment variables to control model routing:
+   * **Fine-Tuned Model Customization**: Specify your custom fine-tuned model ID via:
+     ```env
+     TEEVRGATI_FINE_TUNED_MODEL=ft:gpt-3.5-turbo-xxxx
+     ```
+     *(The backend automatically detects and prioritizes any model specified via `TEEVRGATI_FINE_TUNED_MODEL`, `FINE_TUNED_MODEL`, or `OPENAI_MODEL` prefixed with `ft:` when the appropriate API key is present).*
+   * **Standard LLM Credentials**:
+     ```env
+     GEMINI_API_KEY=your-gemini-api-key
+     OPENAI_API_KEY=your-openai-api-key
+     HF_TOKEN=your-huggingface-token
+     ```
+   * **Fallback Hierarchy**: The backend first attempts the configured fine-tuned model. If not configured or if execution fails, it falls back to:
+     1. **Gemini** (`gemini-1.5-flash`)
+     2. **OpenAI** (defaults to `gpt-3.5-turbo` or the custom `OPENAI_MODEL`)
+     3. **Hugging Face** (defaults to `mistralai/Mistral-7B-Instruct-v0.2` or the custom `HF_MODEL`)
 
 ---
 
