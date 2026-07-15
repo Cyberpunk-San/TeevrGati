@@ -1,0 +1,29 @@
+# C-MAPSS Aircraft Engine Simulator Data
+
+**Summary:** This dataset was generated with the C-MAPSS simulator, a tool for the simulation of realistic large commercial turbofan engine data. It includes various operational conditions to test engine performance.
+
+| Parameter | Value |
+| --- | --- |
+| **Dataset** | C-MAPSS Aircraft Engine Simulator Data |
+| **Domain** | Aerospace & Defense |
+| **Asset / Process** | Turbines / Engines |
+| **Modality** | Time Series |
+| **Task** | Classification; Regression; RUL / Prognostics; Simulation / Control |
+| **Annotation** | Sample Label; Class Label; Scalar Target |
+| **Source Type** | Simulation |
+| **Access** | Official Portal |
+| **Size** | Information not available |
+| **Year** | Information not available |
+| **License** | Information not available |
+
+## Description
+
+C-MAPSS and C-MAPSS40K ARE CURRENTLY UNAVAILABLE FOR DOWNLOAD. Glenn Research Center management is reviewing the availability requirements for these software packages. We are working with Center management to get the review completed and issues resolved in a timely manner. We will post updates on this website when the issues are resolved. We apologize for any inconvenience.
+
+Please contact Jonathan Litt, jonathan.s.litt@nasa.gov, if you have any questions in the meantime.
+
+## References
+
+- [NASA's Open Data Portal](https://data.nasa.gov/dataset/c-mapss-aircraft-engine-simulator-data)
+
+[⬅️ Back to Index](../README.md)

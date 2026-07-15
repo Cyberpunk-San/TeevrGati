@@ -1,0 +1,32 @@
+# AITEX Fabric Image Database
+
+**Summary:** The textile fabric database consists of 245 images of 7 different fabrics, including 140 defect-free images and 105 images with different types of defects.
+
+| Parameter | Value |
+| --- | --- |
+| **Dataset** | AITEX Fabric Image Database |
+| **Domain** | Manufacturing & Production |
+| **Asset / Process** | Textile / Apparel |
+| **Modality** | Image |
+| **Task** | Defect Detection; Defect Segmentation; Classification |
+| **Annotation** | Sample Label; Class Label; Pixel Mask |
+| **Source Type** | Real Production / Field |
+| **Access** | Official Portal |
+| **Size** | 245 |
+| **Year** | 2019 |
+| **License** | Information not available |
+
+## Description
+
+The AITEX Fabric Image Database contains images of textile fabrics used for defect detection. It consists of 245 images of 7 different fabric types. Among these, 140 images are defect-free (20 for each type of fabric) and 105 images contain different defect types.
+
+Each image has a size of 4096×256 pixels. Defective images follow a naming convention of nnnn_ddd_ff.png where nnnn is the image number, ddd is the defect code, and ff is the fabric code. A corresponding defect mask image is also provided for defective images, named nnnn_ddd_ff_mask.png, where white pixels represent the defect area.
+
+Defect-free images are coded as nnnn_000_ff.png where the defect code is replaced by 000. The dataset uses several defect codes such as Broken end (2), Broken yarn (6), Broken pick (10), Weft curling (16), Fuzzyball (19), Cut selvage (22), Crease (23), Warp ball (25), Knots (27), Contamination (29), Nep (30), and Weft crack (36).
+
+## References
+
+- [AITEX Fabric Image Database publication (RiuNet)](https://riunet.upv.es/bitstreams/52d318c8-921f-4172-ad2f-889effa7dd15/download)
+- [AITEX Website - AFID](https://www.aitex.es/afid/)
+
+[⬅️ Back to Index](../README.md)

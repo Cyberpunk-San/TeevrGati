@@ -1,0 +1,46 @@
+[
+  {
+    "id": "INT-001",
+    "technician": "Sr. Engineer Rao",
+    "asset": "Pump P-101",
+    "transcript": "The manual says the mounting bolt torque should be 50 Nm. But if you do that, the casing vibrates like crazy under full flow. We've been tightening them to 60 Nm for years. That solves the vibration false alarms.",
+    "extracted_rule": {
+      "rule_text": "Tighten mounting bolts to 60 Nm instead of the manual's 50 Nm to prevent casing vibration false alarms.",
+      "type": "torque_workaround",
+      "confidence": 0.9
+    }
+  },
+  {
+    "id": "INT-002",
+    "technician": "Lead Tech J. Doe",
+    "asset": "Pump P-101",
+    "transcript": "Whenever you do a cold start, wait at least 10 minutes before recording the vibration measurements. The oil pump needs time to warm up the bearings, otherwise you get a massive spike that triggers the automation alert.",
+    "extracted_rule": {
+      "rule_text": "Wait 10 minutes after startup before recording telemetry readings to avoid startup vibration spikes.",
+      "type": "operational_stabilization",
+      "confidence": 0.95
+    }
+  },
+  {
+    "id": "INT-003",
+    "technician": "Maintenance Supv Singh",
+    "asset": "Compressor C-202",
+    "transcript": "We had seal leaks every winter. We discovered that if the cooling water temperature drops below 20 degrees Celsius, the seal shrinks slightly. So we installed a pre-heater to keep the coolant at 25 degrees. We always make sure the heater is on before running the system.",
+    "extracted_rule": {
+      "rule_text": "Ensure cooling water is pre-heated above 20 degrees Celsius to prevent seal shrinkage and gas leakage.",
+      "type": "environmental_workaround",
+      "confidence": 0.88
+    }
+  },
+  {
+    "id": "INT-004",
+    "technician": "Machinist Patel",
+    "asset": "CNC / Milling Tool",
+    "transcript": "If you are running titanium components, the tool wear limit in the SOP is useless. You must replace the milling bit at 120 minutes instead of the standard 180 minutes, or you will ruin the tolerance on the workpiece.",
+    "extracted_rule": {
+      "rule_text": "Reduce tool wear replacement threshold to 120 minutes when processing titanium workpieces.",
+      "type": "material_override",
+      "confidence": 0.92
+    }
+  }
+]

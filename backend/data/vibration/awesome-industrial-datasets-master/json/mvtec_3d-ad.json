@@ -1,0 +1,29 @@
+{
+  "Name": "MVTec 3D-AD",
+  "Summary": "Unsupervised 3D anomaly detection and localisation dataset with paired RGB images and 3D coordinate maps, plus ground-truth defect annotations across 10 industrial object categories.",
+  "Domain": "Manufacturing & Production",
+  "Asset / Process": "Surface Defects",
+  "Modality": "Image; 3D Point Cloud; RGB-D; Multimodal",
+  "Task": "Anomaly Detection; Anomaly Localization; Defect Segmentation; 3D Understanding",
+  "Annotation": "Normal-Only Training; Sample Label; Pixel Mask; 3D / Point Mask",
+  "Source Type": "Real Lab / Testbed",
+  "Access": "Official Portal; Form Request",
+  "Size": "4147 high-resolution scans across 10 categories",
+  "Year": "2022",
+  "License": "CC BY-NC-SA",
+  "Description": "MVTec 3D-AD is the first large-scale dataset dedicated to unsupervised 3D anomaly detection and localisation in industrial inspection scenarios. Each sample consists of paired data: a high-resolution 3D point cloud represented as XYZ TIFF coordinate maps and a corresponding RGB PNG image, allowing methods to exploit complementary 2D and 3D information.\n\nThe dataset spans 10 industrial object categories. For each category, defect-free samples are provided for training and validation, while the test set contains both normal and anomalous samples. Anomalous test samples are accompanied by pixel-precise ground truth masks indicating defect regions. The dataset includes calibration parameters to enable joint 2D/3D analysis. Total dataset size is approximately 13.2 GB.\n\nMVTec 3D-AD was introduced at VISAPP 2022 and has since become a standard benchmark for evaluating 3D industrial inspection methods. It is licensed under CC BY-NC-SA 4.0 for non-commercial research use.",
+  "References": [
+    {
+      "Text": "Dataset page",
+      "Link": "https://www.mvtec.com/company/research/datasets/mvtec-3d-ad"
+    },
+    {
+      "Text": "Downloads",
+      "Link": "https://www.mvtec.com/company/research/datasets/mvtec-3d-ad/downloads"
+    },
+    {
+      "Text": "Paper (VISAPP 2022)",
+      "Link": "https://doi.org/10.5220/0010865000003124"
+    }
+  ]
+}

@@ -1,0 +1,202 @@
+[
+  {
+    "question": "How do I diagnose a bearing inner race fault on Pump P-101?",
+    "answer": "Perform FFT analysis on the vibration velocity signature. A high amplitude peak at 3.05 times the shaft running speed (RPM) indicates an inner race defect. ISO 10816-3 severity zone D requires immediate replacement."
+  },
+  {
+    "question": "What is the unwritten startup rule for Pump P-101?",
+    "answer": "Always wait exactly 10 minutes after initiating pump startup before recording telemetry readings to allow oil pressure and temperatures to stabilize."
+  },
+  {
+    "question": "Why is Pump P-201 vibrating loudly?",
+    "answer": "The most likely cause is bearing inner race wear, marked by high-frequency vibration signals above 4.5 mm/s RMS, which deviates from SOP-2023 design thresholds."
+  },
+  {
+    "question": "What standard governs Pump vibration severity thresholds?",
+    "answer": "ISO 10816-3 standard is used to classify machine vibration zones from Zone A (Normal) to Zone D (Critical)."
+  },
+  {
+    "question": "What action should be taken if Pump P-101 has a seal leak?",
+    "answer": "Lockout-tagout (LOTO) the pump, isolate suction/discharge valves, drain the pump casing, and replace the mechanical seal cartridge."
+  },
+  {
+    "question": "How do I detect a structural anomaly in Turbine TUR-1?",
+    "answer": "A structural anomaly is indicated by an elevated anomaly score (>0.80) coupled with a vibration velocity increase beyond 2.5 mm/s, typically originating from Atlanta/Chicago installations."
+  },
+  {
+    "question": "Why does Compressor COM-2 experience seal shrinkage?",
+    "answer": "If cooling water temperature drops below 20 degrees Celsius, the polymer seal rings shrink, causing a high-pressure gas leak."
+  },
+  {
+    "question": "What is the torque specification for mounting bolts on TUR-3?",
+    "answer": "Although the drawing specifies 50 Nm, technician feedback mandates tightening mounting bolts to 60 Nm due to flange alignment issues."
+  },
+  {
+    "question": "What parameters are monitored in COM-1?",
+    "answer": "Temperature, inlet/outlet pressure, vibration RMS, casing humidity, and installation location details."
+  },
+  {
+    "question": "What does a high anomaly score on Compressor COM-2 mean?",
+    "answer": "An anomaly score above 0.85 indicates out-of-bounds pressure-to-vibration correlation, suggesting bearing wear or casing deformation."
+  },
+  {
+    "question": "What causes a Power Failure (PWF) on Milling Tool M14860?",
+    "answer": "Power Failure occurs when spindle torque exceeds 40 Nm while rotational speed drops sharply, causing over-current protection trips."
+  },
+  {
+    "question": "How do I check tool wear status on CNC spindle L47181?",
+    "answer": "Inspect the tool wear parameter. Once tool wear exceeds 180 minutes, execute a tool head replacement procedure to prevent surface finish decay."
+  },
+  {
+    "question": "What is the process temperature conversion for AI4I dataset?",
+    "answer": "Standard Process Temperature is recorded in Kelvin. Subtract 273.15 to standardize to Celsius for comparison against SOP manuals."
+  },
+  {
+    "question": "What is the recommended limit for spindle torque on M14868?",
+    "answer": "Spindle torque should not exceed 35 Nm under standard feed rates to avoid overstrain failures (OSF)."
+  },
+  {
+    "question": "What are the common failure modes of CNC Milling Tools?",
+    "answer": "Tool Wear Failure (TWF), Heat Dissipation Failure (HDF), Power Failure (PWF), Overstrain Failure (OSF), and Random Failure (RNF)."
+  },
+  {
+    "question": "What is the standard procedure for handling a Pump warning alert in Section 5?",
+    "answer": "For Pump alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Turbine warning alert in Section 6?",
+    "answer": "For Turbine alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Compressor warning alert in Section 7?",
+    "answer": "For Compressor alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a CNC Tool warning alert in Section 8?",
+    "answer": "For CNC Tool alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Pump warning alert in Section 9?",
+    "answer": "For Pump alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Turbine warning alert in Section 10?",
+    "answer": "For Turbine alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Compressor warning alert in Section 11?",
+    "answer": "For Compressor alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a CNC Tool warning alert in Section 12?",
+    "answer": "For CNC Tool alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Pump warning alert in Section 13?",
+    "answer": "For Pump alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Turbine warning alert in Section 14?",
+    "answer": "For Turbine alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Compressor warning alert in Section 15?",
+    "answer": "For Compressor alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a CNC Tool warning alert in Section 16?",
+    "answer": "For CNC Tool alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Pump warning alert in Section 17?",
+    "answer": "For Pump alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Turbine warning alert in Section 18?",
+    "answer": "For Turbine alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Compressor warning alert in Section 19?",
+    "answer": "For Compressor alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a CNC Tool warning alert in Section 20?",
+    "answer": "For CNC Tool alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Pump warning alert in Section 21?",
+    "answer": "For Pump alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Turbine warning alert in Section 22?",
+    "answer": "For Turbine alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Compressor warning alert in Section 23?",
+    "answer": "For Compressor alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a CNC Tool warning alert in Section 24?",
+    "answer": "For CNC Tool alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Pump warning alert in Section 25?",
+    "answer": "For Pump alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Turbine warning alert in Section 26?",
+    "answer": "For Turbine alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Compressor warning alert in Section 27?",
+    "answer": "For Compressor alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a CNC Tool warning alert in Section 28?",
+    "answer": "For CNC Tool alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Pump warning alert in Section 29?",
+    "answer": "For Pump alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Turbine warning alert in Section 30?",
+    "answer": "For Turbine alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Compressor warning alert in Section 31?",
+    "answer": "For Compressor alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a CNC Tool warning alert in Section 32?",
+    "answer": "For CNC Tool alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Pump warning alert in Section 33?",
+    "answer": "For Pump alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Turbine warning alert in Section 34?",
+    "answer": "For Turbine alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Compressor warning alert in Section 35?",
+    "answer": "For Compressor alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a CNC Tool warning alert in Section 36?",
+    "answer": "For CNC Tool alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Pump warning alert in Section 37?",
+    "answer": "For Pump alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Turbine warning alert in Section 38?",
+    "answer": "For Turbine alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  },
+  {
+    "question": "What is the standard procedure for handling a Compressor warning alert in Section 39?",
+    "answer": "For Compressor alerts, check telemetry indicators, isolate power, inspect mechanical fittings, and document parameters prior to re-engaging."
+  }
+]

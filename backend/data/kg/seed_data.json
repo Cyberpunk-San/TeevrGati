@@ -1,0 +1,231 @@
+{
+  "nodes": [
+    {
+      "id": "EQ-P-201",
+      "type": "Equipment",
+      "label": "Pump P-201",
+      "status": "active",
+      "properties": {
+        "manufacturer": "Sulzer",
+        "rated_rpm": "$TEEVRGATI_SEED_PUMP_RPM:1480"
+      }
+    },
+    {
+      "id": "EQ-C-101",
+      "type": "Equipment",
+      "label": "Compressor C-101",
+      "status": "active",
+      "properties": {
+        "manufacturer": "Ingersoll Rand",
+        "rated_rpm": "$TEEVRGATI_SEED_COMPRESSOR_RPM:2950"
+      }
+    },
+    {
+      "id": "EQ-T-102",
+      "type": "Equipment",
+      "label": "Turbine T-102",
+      "status": "active",
+      "properties": {
+        "manufacturer": "Siemens",
+        "rated_rpm": "$TEEVRGATI_SEED_TURBINE_RPM:3000"
+      }
+    },
+    {
+      "id": "COMP-bearing-P-201",
+      "type": "Component",
+      "label": "Bearing SKF-6306",
+      "status": "active",
+      "properties": {}
+    },
+    {
+      "id": "COMP-seal-P-201",
+      "type": "Component",
+      "label": "Mechanical Seal MS-22",
+      "status": "active",
+      "properties": {}
+    },
+    {
+      "id": "COMP-coupling-C-101",
+      "type": "Component",
+      "label": "Flexible Coupling CM-101",
+      "status": "active",
+      "properties": {}
+    },
+    {
+      "id": "DOC-pump-sop.pdf",
+      "type": "Procedure",
+      "label": "SOP_Pump_P-201_Limits",
+      "status": "active",
+      "properties": {
+        "issue_year": 2023
+      }
+    },
+    {
+      "id": "DOC-compressor-sop.pdf",
+      "type": "Procedure",
+      "label": "SOP_Compressor_LOTO",
+      "status": "active",
+      "properties": {
+        "issue_year": 2022
+      }
+    },
+    {
+      "id": "DOC-turbine-sop.pdf",
+      "type": "Procedure",
+      "label": "SOP_Turbine_Overhaul",
+      "status": "active",
+      "properties": {
+        "issue_year": 2021
+      }
+    },
+    {
+      "id": "INC-leak-2023",
+      "type": "Incident",
+      "label": "Incident: Seal Leak P-201",
+      "status": "closed",
+      "properties": {
+        "date": "2023-08-14"
+      }
+    },
+    {
+      "id": "INC-vibration-2024",
+      "type": "Incident",
+      "label": "Incident: High Vibration P-201",
+      "status": "closed",
+      "properties": {
+        "date": "2024-02-10"
+      }
+    },
+    {
+      "id": "TACIT-bearing-limit",
+      "type": "TacitRule",
+      "label": "Tacit: Bearing Peak Limit (7.2 mm/s)",
+      "status": "verified",
+      "properties": {
+        "author": "Senior Operator Roy"
+      }
+    },
+    {
+      "id": "PERSON-Roy",
+      "type": "Person",
+      "label": "Senior Operator Roy",
+      "status": "retiring_soon",
+      "properties": {
+        "retirement_date": "2026-12-31"
+      }
+    },
+    {
+      "id": "REG-OISD-105",
+      "type": "Regulation",
+      "label": "OISD-105 LOTO Standard",
+      "status": "active",
+      "properties": {
+        "version": "2023"
+      }
+    },
+    {
+      "id": "WO-2024-001",
+      "type": "WorkOrder",
+      "label": "WO-2024-001: Bearing Replacement",
+      "status": "open",
+      "properties": {
+        "priority": "Emergency",
+        "labor_estimate": 4
+      }
+    },
+    {
+      "id": "DEPT-MAINTENANCE",
+      "type": "Department",
+      "label": "Maintenance Department",
+      "status": "active",
+      "properties": {}
+    }
+  ],
+  "edges": [
+    {
+      "from": "DOC-pump-sop.pdf",
+      "to": "EQ-P-201",
+      "relation": "MENTIONS"
+    },
+    {
+      "from": "DOC-compressor-sop.pdf",
+      "to": "EQ-C-101",
+      "relation": "MENTIONS"
+    },
+    {
+      "from": "DOC-turbine-sop.pdf",
+      "to": "EQ-T-102",
+      "relation": "MENTIONS"
+    },
+    {
+      "from": "EQ-P-201",
+      "to": "COMP-bearing-P-201",
+      "relation": "HAS_COMPONENT"
+    },
+    {
+      "from": "EQ-P-201",
+      "to": "COMP-seal-P-201",
+      "relation": "HAS_COMPONENT"
+    },
+    {
+      "from": "EQ-C-101",
+      "to": "COMP-coupling-C-101",
+      "relation": "HAS_COMPONENT"
+    },
+    {
+      "from": "EQ-P-201",
+      "to": "INC-leak-2023",
+      "relation": "HAS_INCIDENT"
+    },
+    {
+      "from": "EQ-P-201",
+      "to": "INC-vibration-2024",
+      "relation": "HAS_INCIDENT"
+    },
+    {
+      "from": "INC-vibration-2024",
+      "to": "COMP-bearing-P-201",
+      "relation": "AFFECTS"
+    },
+    {
+      "from": "INC-leak-2023",
+      "to": "COMP-seal-P-201",
+      "relation": "AFFECTS"
+    },
+    {
+      "from": "DOC-pump-sop.pdf",
+      "to": "TACIT-bearing-limit",
+      "relation": "REPLACED_BY"
+    },
+    {
+      "from": "TACIT-bearing-limit",
+      "to": "EQ-P-201",
+      "relation": "GOVERNS"
+    },
+    {
+      "from": "TACIT-bearing-limit",
+      "to": "COMP-bearing-P-201",
+      "relation": "APPLIES_TO"
+    },
+    {
+      "from": "PERSON-Roy",
+      "to": "TACIT-bearing-limit",
+      "relation": "KNOWS_TACIT_RULE"
+    },
+    {
+      "from": "DOC-pump-sop.pdf",
+      "to": "REG-OISD-105",
+      "relation": "CITES_CLAUSE"
+    },
+    {
+      "from": "WO-2024-001",
+      "to": "INC-vibration-2024",
+      "relation": "ADDRESSES"
+    },
+    {
+      "from": "PERSON-Roy",
+      "to": "DEPT-MAINTENANCE",
+      "relation": "BELONGS_TO"
+    }
+  ]
+}

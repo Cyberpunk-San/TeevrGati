@@ -1,0 +1,32 @@
+# DAMADICS Actuator Benchmark
+
+**Summary:** Process control actuator fault diagnosis benchmark dataset from a sugar factory, consisting of multivariate daily measurement files from a real industrial actuator with multiple fault scenarios for evaluation.
+
+| Parameter | Value |
+| --- | --- |
+| **Dataset** | DAMADICS Actuator Benchmark |
+| **Domain** | Chemical & Process; Manufacturing & Production |
+| **Asset / Process** | Valves / Actuators; Chemical Process |
+| **Modality** | Time Series |
+| **Task** | Classification; Fault Diagnosis; Process Monitoring |
+| **Annotation** | Sample Label; Class Label |
+| **Source Type** | Real Production / Field |
+| **Access** | Direct Download |
+| **Size** | Daily matrices of 86400 rows x 33 columns |
+| **Year** | 2001 |
+| **License** | Information not available |
+
+## Description
+
+DAMADICS (Development and Application of Methods for Actuator Diagnosis in Industrial Control Systems) is a benchmark dataset developed for evaluating actuator fault diagnosis methods in process control environments. The data was collected from a real control valve installation at the Lublin Sugar Factory in Poland, representing a practical industrial deployment scenario.
+
+The dataset consists of daily measurement files, each containing a matrix of approximately 86,400 rows (corresponding to 1 Hz sampling) and 33 measurement columns representing process variables including valve position, flow, pressure, and temperatures. Multiple fault scenarios were intentionally introduced into the process to provide labelled fault data for classifier development and evaluation.
+
+DAMADICS is one of the classical benchmarks in the process control and fault diagnosis community, cited extensively in the literature. Downloads are available via the organiser's website as multi-part ZIP archives. The benchmark description paper is available via ScienceDirect.
+
+## References
+
+- [Dataset downloads (organiser page)](https://iair.mchtr.pw.edu.pl/Damadics)
+- [Benchmark description paper (ScienceDirect)](https://www.sciencedirect.com/science/article/abs/pii/S0967066105001796)
+
+[⬅️ Back to Index](../README.md)

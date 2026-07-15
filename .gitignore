@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.ipynb_checkpoints/
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+
+# Node/Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project databases / models / temporary files
+backend/data/chroma_db/
+backend/data/raw/*
+backend/models/*.pkl
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Env
+.env

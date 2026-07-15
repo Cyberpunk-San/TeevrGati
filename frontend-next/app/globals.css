@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Light Theme Variables & Class Overrides */
+:root {
+  --theme-bg: #0d1527;
+  --theme-card: rgba(17, 24, 39, 0.8);
+  --theme-text: #ffffff;
+  --theme-border: #1e293b;
+}
+
+.light-theme {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --theme-bg: #f1f5f9;
+  --theme-card: rgba(255, 255, 255, 0.95);
+  --theme-text: #0f172a;
+  --theme-border: #cbd5e1;
+}
+
+/* CSS Override Rules for Dynamic Swapping */
+.light-theme body {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.light-theme aside {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+.light-theme h1, .light-theme h2, .light-theme h3, .light-theme h4, .light-theme h5 {
+  color: #0f172a !important;
+}
+
+.light-theme p, .light-theme span.text-slate-300 {
+  color: #475569 !important;
+}
+
+.light-theme .bg-\[\#111827\]\/80, 
+.light-theme .bg-\[\#111827\]\/85,
+.light-theme .bg-\[\#0b0f19\],
+.light-theme .bg-gradient-to-b {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.light-theme .bg-\[\#0d1527\] {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+.light-theme textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+

@@ -1,0 +1,30 @@
+{
+  "success": true,
+  "document_id": "doc_20260714_111841",
+  "pages": [
+    {
+      "page_num": 1,
+      "text": "INDUSTRIAL EQUIPMENT DATASHEET AND PROCEDURES\nDocument Ref: SOP-2023 / Section 4(12)\nDate of Issue: 2024-01-01\nAuthor: Sr. Engineer Rao\nDepartment: Maintenance and Safety\n1. Equipment Specifications:\n- Tag Name: Pump P-101 (Centrifugal pump for water transfer)\n- Alternate Designator: P/101\n- Operating Limit: Max speed 3000 RPM\n- Mounting Bolt Torque: Recommended torque for Pump P-101 is 45 Nm.\n2. Safety Procedures:\n- Before starting Pump P-101, ensure lockout-tagout is complete.\n- Governed by regulation OISD 105 and Section 4(12) of safety manual.\n- General guidelines follow Factory Act protocols.\n3. Incident Logs:\n- On 2024-01-01, an incident occurred where a seal failed on Pump P-101.\n- Sr. Engineer Rao inspected the unit and noticed a gap.\n- Resolved by maintenance technician J. Doe, who replaced the seals.\n",
+      "length": 822
+    }
+  ],
+  "metadata": {
+    "format": "PDF 1.7",
+    "title": "",
+    "author": "",
+    "subject": "",
+    "keywords": "",
+    "creator": "",
+    "producer": "",
+    "creationDate": "",
+    "modDate": "",
+    "trapped": "",
+    "encryption": null
+  },
+  "parse_chain": [
+    "file_detection: clean_text",
+    "clean_text_pymupdf"
+  ],
+  "error": null,
+  "fallback_used": false
+}

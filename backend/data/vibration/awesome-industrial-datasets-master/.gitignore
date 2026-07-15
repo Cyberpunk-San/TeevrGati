@@ -1,0 +1,14 @@
+.DS_Store
+.ipynb_checkpoints
+.pytest_cache
+.idea
+__pycache__
+venv
+*.egg-info/*
+*.pyc
+backup
+.env
+process.log
+statistics.py
+.claude
+paper/

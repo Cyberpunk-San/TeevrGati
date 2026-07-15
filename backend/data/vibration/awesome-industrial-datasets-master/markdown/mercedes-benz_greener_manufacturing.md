@@ -1,0 +1,31 @@
+# Mercedes-Benz Greener Manufacturing
+
+**Summary:** The dataset represents different permutations of features in a Mercedes-Benz car to predict the time it takes to pass testing, aiming to reduce test bench time and related carbon dioxide emissions.
+
+| Parameter | Value |
+| --- | --- |
+| **Dataset** | Mercedes-Benz Greener Manufacturing |
+| **Domain** | Transportation & Mobility; Manufacturing & Production |
+| **Asset / Process** | Vehicles / Fleets |
+| **Modality** | Tabular |
+| **Task** | Regression; Quality Prediction |
+| **Annotation** | Scalar Target |
+| **Source Type** | Real Production / Field |
+| **Access** | Kaggle; Login Required |
+| **Size** | Information not available |
+| **Year** | Information not available |
+| **License** | Information not available |
+
+## Description
+
+Since the first automobile, the Benz Patent Motor Car in 1886, Mercedes-Benz has stood for important automotive innovations including the passenger safety cell with a crumple zone, the airbag, and intelligent assistance systems. Mercedes-Benz is a leader in the premium car industry, providing customized vehicles with many options.
+
+To ensure safety and reliability, Mercedes-Benz engineers developed a robust testing system for all unique car configurations before release. Optimizing the speed of this testing system, which must handle many feature combinations, is complex and time-consuming without powerful algorithmic solutions.
+
+This dataset contains such combinations of features and aims to facilitate development of algorithms to reduce the time cars spend on the test bench, thereby improving testing efficiency and reducing CO2 emissions without compromising standards.
+
+## References
+
+- [Mercedes-Benz Greener Manufacturing on Kaggle](https://www.kaggle.com/datasets/swetashetye/mercedesbenz-greener-manufacturing)
+
+[⬅️ Back to Index](../README.md)

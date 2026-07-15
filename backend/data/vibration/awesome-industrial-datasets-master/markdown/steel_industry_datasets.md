@@ -1,0 +1,32 @@
+# Steel Industry datasets
+
+**Summary:** Analyzing Energy Consumption and Environmental Impact in the Steel Industry.
+
+| Parameter | Value |
+| --- | --- |
+| **Dataset** | Steel Industry datasets |
+| **Domain** | Energy & Power; Environment & Safety; Manufacturing & Production |
+| **Asset / Process** | Steel / Metal Surfaces; Power Grid / Plants |
+| **Modality** | Time Series |
+| **Task** | Regression; Energy Optimization |
+| **Annotation** | Scalar Target |
+| **Source Type** | Real Production / Field |
+| **Access** | Kaggle; Login Required |
+| **Size** | Likely 20640+ (approximate count based on Usage_kWh counts) |
+| **Year** | Information not available |
+| **License** | CC0 |
+
+## Description
+
+This dataset contains time series data recorded with timestamps of energy consumption and environmental impact parameters in the steel industry. The data includes energy usage in kilowatt-hours (Usage_kWh), reactive power consumption (both leading and lagging), carbon dioxide emissions (CO2), power factors, normalized solar energy (NSM), and temporal attributes like WeekStatus and Day_Of_Week.
+
+These features provide insights into the power efficiency, reactive power usage, and environmental emissions over time, useful for regression tasks to model and analyze energy consumption patterns and their impact.
+
+This dataset is made available under a CC0 Public Domain license, indicating it is free for public use, and was last updated about a year ago. The data is detailed with continuous readings likely spanning from around 2017-12-31 to 2018-12-12, giving an extensive timeline for analysis.
+
+## References
+
+- [Steel Industry datasets on Kaggle](https://www.kaggle.com/datasets/ayushparwal2026/steel-industry-datasets)
+- [CC0: Public Domain License](https://creativecommons.org/publicdomain/zero/1.0/)
+
+[⬅️ Back to Index](../README.md)

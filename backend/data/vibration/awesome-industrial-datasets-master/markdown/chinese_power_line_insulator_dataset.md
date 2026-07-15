@@ -1,0 +1,31 @@
+# Chinese Power Line Insulator Dataset
+
+**Summary:** Provide normal insulator images captured by UAVs and synthetic defective insulator images.
+
+| Parameter | Value |
+| --- | --- |
+| **Dataset** | Chinese Power Line Insulator Dataset |
+| **Domain** | Energy & Power |
+| **Asset / Process** | Power Grid / Plants |
+| **Modality** | Image; Geospatial / Remote Sensing |
+| **Task** | Defect Detection; Classification |
+| **Annotation** | Sample Label; Class Label |
+| **Source Type** | Mixed |
+| **Access** | Repository |
+| **Size** | Information not available |
+| **Year** | Information not available |
+| **License** | Information not available |
+
+## Description
+
+This dataset contains images of power line insulators taken by UAVs. It includes both normal insulator images and synthetic defective insulator images, providing data likely useful for detecting and classifying defects in power line insulators.
+
+The dataset aims to support machine learning tasks related to the inspection and maintenance of power line insulators by offering a collection of real-world and artificially created defective examples. This setup facilitates the development and evaluation of algorithms for automated insulator defect recognition from images.
+
+Further details about the number of images, the exact labeling scheme, and instances counts are not available on the provided webpage. The dataset is hosted on GitHub under the repository "InsulatorDataSet" by the user "InsulatorData."
+
+## References
+
+- [Chinese Power Line Insulator Dataset GitHub Repository](https://github.com/InsulatorData/InsulatorDataSet)
+
+[⬅️ Back to Index](../README.md)

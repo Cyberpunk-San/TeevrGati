@@ -1,0 +1,16 @@
+{
+  "name": "TeevrGati Self-Healing Portal",
+  "short_name": "TeevrGati",
+  "description": "Closed-loop industrial diagnostics and safety compliance co-pilot.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1527",
+  "theme_color": "#00f5d4",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

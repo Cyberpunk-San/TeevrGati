@@ -1,0 +1,30 @@
+# Streamlit UI
+streamlit>=1.30.0
+
+# PDF & Text Processing
+PyMuPDF>=1.23.0
+pdfplumber>=0.10.0
+pypdf2>=3.0.0
+
+# OCR & Vision
+pytesseract>=0.3.10
+pillow>=10.0.0
+opencv-python>=4.8.0
+
+# Advanced Layout & Drawing Parsing
+transformers>=4.30.0
+torch>=2.0.0
+paddlepaddle>=2.5.0
+paddleocr>=2.7.0
+
+# Utilities & Magic File Detection
+python-magic-bin>=0.4.14
+python-dotenv>=1.0.0
+pytest>=7.0.0
+
+# Brain: Knowledge Graph & RAG
+spacy>=3.7.0
+networkx>=3.0
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+
