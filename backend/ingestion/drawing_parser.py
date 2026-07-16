@@ -1,8 +1,11 @@
 """
 drawing_parser.py — P&ID / Engineering Drawing Parser
-Replaces broken PaddleOCR (incompatible with Python 3.14) with two approaches:
-  1. PRIMARY: Gemini Vision API — describes P&ID elements from image, returns JSON equipment tags
-  2. FALLBACK: PyMuPDF text extraction + regex equipment tag detection (works on text-based PDFs)
+Three-tier approach:
+  1. PRIMARY:   PaddleOCR (Python 3.10 subprocess via venv_paddle/) — best for scanned drawings
+  2. SECONDARY: Gemini Vision API — great for complex P&ID diagrams
+  3. FALLBACK:  PyMuPDF text extraction + regex equipment tag detection
+
+To enable PaddleOCR, run: bash scripts/setup_paddleocr.sh
 """
 import os
 import re
@@ -11,6 +14,17 @@ import json
 import fitz  # PyMuPDF
 from PIL import Image
 from typing import Dict, List, Optional
+
+# PaddleOCR subprocess wrapper (Python 3.10 venv) — graceful no-op if not installed
+try:
+    from .paddle_wrapper import run_paddle_ocr, is_paddle_available, extract_text_from_image as _paddle_extract
+except ImportError:
+    try:
+        from backend.ingestion.paddle_wrapper import run_paddle_ocr, is_paddle_available, extract_text_from_image as _paddle_extract
+    except ImportError:
+        def is_paddle_available(): return False  # type: ignore
+        def run_paddle_ocr(*a, **kw): return None  # type: ignore
+        def _paddle_extract(*a, **kw): return ""  # type: ignore
 
 # Equipment tag pattern: P-201, VLV-101, C-101, T-301, E-401, etc.
 EQUIPMENT_TAG_PATTERN = re.compile(
@@ -118,13 +132,13 @@ def _extract_tags_with_regex(text: str) -> List[Dict]:
 def parse_drawing(file_path: str) -> Dict:
     """
     Main entry point. Parses P&ID / engineering drawings.
-    Uses Gemini Vision (primary) or regex fallback.
+    Priority: PaddleOCR (if venv_paddle set up) → Gemini Vision → PyMuPDF+regex.
     
     Returns:
         {
             'pages': [...],
             'metadata': {...},
-            'parse_method': 'gemini_vision' | 'text_regex' | 'fallback',
+            'parse_method': 'paddleocr' | 'gemini_vision' | 'text_regex' | 'fallback',
             'equipment_tags': [...],
             'connections': [...],
             'drawing_type': str,
@@ -160,7 +174,31 @@ def parse_drawing(file_path: str) -> Dict:
         parse_method = 'text_regex'
 
         for page_num, page in enumerate(doc):
-            # ── Try Gemini Vision (primary for image-based drawings) ──────────
+            # ── Tier 1: PaddleOCR via Python 3.10 subprocess ──────────────────
+            if is_paddle_available():
+                try:
+                    pix = page.get_pixmap(dpi=200)
+                    import tempfile
+                    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                        tmp_path = tmp.name
+                        pix.save(tmp_path)
+                    paddle_results = run_paddle_ocr(tmp_path, timeout=45)
+                    try:
+                        os.unlink(tmp_path)
+                    except OSError:
+                        pass
+                    if paddle_results:
+                        combined_text = " ".join(r["text"] for r in paddle_results if r.get("text"))
+                        tags = _extract_equipment_tags(combined_text)
+                        all_tags.extend(tags)
+                        all_text.append(combined_text)
+                        parse_method = "paddleocr"
+                        all_connections.append({"type": "flow", "source": "paddleocr", "page": page_num + 1})
+                        continue  # Skip other methods for this page
+                except Exception as paddle_err:
+                    print(f"[drawing_parser] PaddleOCR error on page {page_num}: {paddle_err}")
+
+            # ── Tier 2: Gemini Vision (primary for image-based drawings) ──────
             if GEMINI_API_KEY:
                 try:
                     pix = page.get_pixmap(dpi=150)

@@ -1,142 +1,162 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Activity,
-  BookOpen,
-  Network,
-  Wrench,
-  BarChart2,
-  Clock,
+  Activity, GitBranch, FileText, Wrench, Upload, LayoutDashboard
 } from "lucide-react";
 
-const navItems = [
-  { name: "Dashboard",    href: "/",           icon: Activity },
-  { name: "Query",        href: "/",           icon: Activity,  alias: true },
-  { name: "Graph",        href: "/graph",      icon: Network },
-  { name: "Maintenance",  href: "/maintenance",icon: Wrench },
-  { name: "Ingest",       href: "/ingest",     icon: BookOpen },
-  { name: "Metrics",      href: "/dashboard",  icon: BarChart2 },
+const NAV_ITEMS = [
+  { href: "/",            label: "Diagnostics",  icon: Activity },
+  { href: "/dashboard",   label: "Dashboard",    icon: LayoutDashboard },
+  { href: "/graph",       label: "KG Graph",     icon: GitBranch },
+  { href: "/maintenance", label: "Maintenance",  icon: Wrench },
+  { href: "/ingest",      label: "Ingest SOP",   icon: Upload },
 ];
 
-// Deduplicate: Dashboard & Query both point to "/"
-const dedupedNav = [
-  { name: "Dashboard",    href: "/",            icon: Activity },
-  { name: "Graph",        href: "/graph",       icon: Network },
-  { name: "Maintenance",  href: "/maintenance", icon: Wrench },
-  { name: "Ingest",       href: "/ingest",      icon: BookOpen },
-  { name: "Metrics",      href: "/dashboard",   icon: BarChart2 },
-];
-
-export default function NavigationWrapper({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function NavigationWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [time, setTime] = React.useState("");
+  const [time, setTime] = useState(() => new Date().toLocaleTimeString("en-IN", { hour12: false }));
 
   React.useEffect(() => {
-    const fmt = () =>
-      new Date().toLocaleTimeString("en-IN", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-        timeZone: "Asia/Kolkata",
-      });
-    setTime(fmt());
-    const id = setInterval(() => setTime(fmt()), 1000);
-    return () => clearInterval(id);
+    const t = setInterval(() => setTime(new Date().toLocaleTimeString("en-IN", { hour12: false })), 1000);
+    return () => clearInterval(t);
   }, []);
 
   return (
-    <div className="flex min-h-screen">
-      {/* ── Sidebar ─────────────────────────────────── */}
-      <aside className="w-56 shrink-0 border-r border-[#27272a] bg-[#09090b] flex flex-col">
+    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-base)" }}>
+
+      {/* ── Sidebar ── */}
+      <aside style={{
+        width: 220,
+        flexShrink: 0,
+        background: "var(--bg-surface)",
+        borderRight: "1px solid var(--border)",
+        display: "flex",
+        flexDirection: "column",
+        padding: "20px 0",
+        position: "sticky",
+        top: 0,
+        height: "100vh",
+        overflowY: "auto",
+      }}>
+
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-[#27272a] flex items-center gap-3">
-          <div className="h-8 w-8 rounded-[6px] bg-[#22d3ee] flex items-center justify-center shrink-0">
-            <span className="text-[#09090b] font-black text-xs tracking-tight">
+        <div style={{ padding: "0 16px 20px", borderBottom: "1px solid var(--border-dim)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{
+              width: 32, height: 32,
+              background: "var(--accent)",
+              borderRadius: "var(--r-sm)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontWeight: 800, fontSize: 13, color: "#09090b",
+              fontFamily: "monospace", letterSpacing: "-0.02em",
+            }}>
               TG
-            </span>
-          </div>
-          <div className="min-w-0">
-            <p className="text-[13px] font-semibold tracking-tight text-[#fafafa] truncate">
-              TeevrGati
-            </p>
-            <p className="text-[10px] text-[#52525b] truncate">AI Diagnostics</p>
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
+                TeevrGati
+              </div>
+              <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.02em" }}>
+                Refinery AI
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5">
-          {dedupedNav.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/" && pathname.startsWith(item.href));
+        {/* Plant badge */}
+        <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border-dim)" }}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 4 }}>
+            Active Plant
+          </div>
+          <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-secondary)" }}>
+            BPCL Mathura Refinery
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 6 }}>
+            <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 5px #10b98166" }} />
+            <span style={{ fontSize: 10, color: "#10b981" }}>Online · {time}</span>
+          </div>
+        </div>
+
+        {/* Nav items */}
+        <nav style={{ padding: "10px 8px", flex: 1 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", padding: "4px 8px 8px" }}>
+            Navigation
+          </div>
+          {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+            const active = pathname === href || (href !== "/" && pathname.startsWith(href));
             return (
-              <Link
-                key={item.href + item.name}
-                href={item.href}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-[6px] text-[13px] font-medium transition-colors duration-150 ${
-                  isActive
-                    ? "bg-[#22d3ee]/10 text-[#22d3ee]"
-                    : "text-[#71717a] hover:text-[#fafafa] hover:bg-[#18181b]"
-                }`}
-              >
-                <Icon
-                  className={`h-4 w-4 shrink-0 ${
-                    isActive ? "text-[#22d3ee]" : "text-[#52525b]"
-                  }`}
-                />
-                {item.name}
-                {isActive && (
-                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#22d3ee]" />
-                )}
+              <Link key={href} href={href} style={{ textDecoration: "none" }}>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "8px 10px", borderRadius: "var(--r-sm)", marginBottom: 2,
+                  background: active ? "var(--accent-dim)" : "transparent",
+                  border: active ? "1px solid rgba(34,211,238,0.2)" : "1px solid transparent",
+                  cursor: "pointer",
+                  transition: "background 0.15s, border-color 0.15s",
+                }}>
+                  <Icon size={14} color={active ? "var(--accent)" : "var(--text-muted)"} />
+                  <span style={{
+                    fontSize: 13, fontWeight: active ? 500 : 400,
+                    color: active ? "var(--text-primary)" : "var(--text-secondary)",
+                  }}>
+                    {label}
+                  </span>
+                </div>
               </Link>
             );
           })}
         </nav>
 
-        {/* Footer status */}
-        <div className="px-4 py-4 border-t border-[#27272a]">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#22d3ee] animate-pulse" />
-            <span className="text-[10px] text-[#52525b] font-medium uppercase tracking-widest">
-              Engine Online
-            </span>
+        {/* Footer */}
+        <div style={{ padding: "12px 16px", borderTop: "1px solid var(--border-dim)" }}>
+          <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
+            तीव्र गति &middot; High Velocity
           </div>
-          <p className="text-[10px] text-[#3f3f46] mono">{time} IST</p>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>
+            OISD-105 · ISO 10816-3 · API 610
+          </div>
         </div>
       </aside>
 
-      {/* ── Main Area ───────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
+      {/* ── Main content ── */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         {/* Top bar */}
-        <header className="h-12 border-b border-[#27272a] flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-medium text-[#52525b] uppercase tracking-widest">
-              BPCL Mathura Refinery
-            </span>
+        <header style={{
+          height: 48,
+          borderBottom: "1px solid var(--border)",
+          display: "flex",
+          alignItems: "center",
+          padding: "0 24px",
+          gap: 12,
+          background: "var(--bg-surface)",
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+        }}>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", flex: 1 }}>
+            {NAV_ITEMS.find(n => n.href === pathname || (n.href !== "/" && pathname.startsWith(n.href)))?.label || "Diagnostics"}
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span className="text-[10px] text-[#52525b]">Online</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+              Pump P-201 · C-101 · T-301
             </div>
-            <div className="flex items-center gap-1.5 text-[#3f3f46]">
-              <Clock className="h-3 w-3" />
-              <span className="mono text-[10px]">{time}</span>
+            <div style={{
+              padding: "3px 10px", borderRadius: "100px",
+              background: "rgba(34,211,238,0.08)", border: "1px solid rgba(34,211,238,0.2)",
+              fontSize: 11, color: "var(--accent)", fontWeight: 500,
+            }}>
+              gemini-2.0-flash
             </div>
           </div>
         </header>
 
-        {/* Content */}
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        {/* Page content */}
+        <main style={{ flex: 1, overflowY: "auto" }}>
+          {children}
+        </main>
       </div>
     </div>
   );
