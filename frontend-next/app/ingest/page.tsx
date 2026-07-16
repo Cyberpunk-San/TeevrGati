@@ -48,26 +48,27 @@ export default function IngestPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col p-6 gap-6">
-      
-      {/* Page Header */}
-      <div className="flex justify-between items-center bg-[#0d1527] border border-[#1e293b] p-6 rounded-xl shadow-lg">
+    <div className="page-shell">
+      <div className="page-header">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-wide">SOP & MANUAL INGESTION PORTAL</h2>
-          <p className="text-xs text-[#64748b]">Upload OEM spec guidelines and maintenance SOPs to build RAG vector contexts</p>
+          <div className="label">Knowledge base</div>
+          <h1 className="page-title" style={{ marginTop: 8 }}>Ingest SOP & manuals</h1>
+          <p className="page-subtitle">
+            Drop a PDF to update the RAG index and knowledge graph without a full rebuild.
+          </p>
         </div>
-        <div className="h-10 w-10 rounded-lg bg-[#00f5d4]/10 border border-[#00f5d4]/20 flex items-center justify-center">
-          <BookOpen className="h-5.5 w-5.5 text-[#00f5d4]" />
+        <div style={{
+          height: 44, width: 44, borderRadius: 12,
+          background: "var(--accent-dim)", border: "1px solid rgba(34,211,238,0.2)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <BookOpen size={18} color="var(--accent)" />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Upload Card Area (Left 7 columns) */}
-        <div className="lg:col-span-7 bg-[#111827]/80 border border-[#1e293b] rounded-xl p-5 shadow-xl flex flex-col gap-4">
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-2 text-[#00f5d4]">
-            📥 OEM PDF Upload
-          </h3>
+      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 28, alignItems: "start" }}>
+        <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <h3 className="label" style={{ color: "var(--accent)" }}>PDF upload</h3>
 
           <div className="border-2 border-dashed border-[#2e374a] rounded-lg p-12 flex flex-col items-center justify-center gap-4 hover:border-[#00f5d4] transition-all bg-[#0d1527]/50 relative min-h-[280px]">
             <input 
@@ -99,13 +100,11 @@ export default function IngestPage() {
           )}
         </div>
 
-        {/* Stats Inspector Panel (Right 5 columns) */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
-          <div className="bg-[#111827]/80 border border-[#1e293b] rounded-xl p-5 shadow-xl flex-1">
-            <h3 className="text-xs font-bold text-[#00f5d4] uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Layers className="h-4 w-4 text-[#00f5d4]" />
-              Ingested Document Schema
-            </h3>
+        <div className="card card-pad">
+          <h3 className="label" style={{ color: "var(--accent)", display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+            <Layers size={14} color="var(--accent)" />
+            Document schema
+          </h3>
 
             {uploadStats ? (
               <div className="flex flex-col gap-4 text-xs">
@@ -139,7 +138,6 @@ export default function IngestPage() {
                 <span className="text-xs text-[#64748b]">Upload a PDF manual to inspect metadata output</span>
               </div>
             )}
-          </div>
         </div>
 
       </div>

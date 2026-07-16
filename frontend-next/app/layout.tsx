@@ -34,7 +34,7 @@ export default function RootLayout({
       <head>
         <meta name="color-scheme" content="dark" />
       </head>
-      <body className="min-h-full flex flex-col bg-[#09090b] text-[#fafafa]">
+      <body className={`${geistSans.variable} ${geistMono.variable} min-h-full flex flex-col bg-[#09090b] text-[#fafafa]`}>
         <NavigationWrapper>{children}</NavigationWrapper>
       </body>
     </html>

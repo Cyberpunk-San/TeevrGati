@@ -61,38 +61,31 @@ export default function MaintenancePage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col p-6 gap-6">
-      
-      {/* Page Header */}
-      <div className="flex justify-between items-center bg-[#0d1527] border border-[#1e293b] p-6 rounded-xl shadow-lg">
+    <div className="page-shell">
+      <div className="page-header">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-wide">MAINTENANCE & PROACTIVE DISPATCH LOGS</h2>
-          <p className="text-xs text-[#64748b]">View generated lockout-tagout (LOTO) work orders and dispatcher communications</p>
+          <div className="label">Field operations</div>
+          <h1 className="page-title" style={{ marginTop: 8 }}>Maintenance & dispatch</h1>
+          <p className="page-subtitle">
+            LOTO work orders and proactive alerts generated from diagnostic runs.
+          </p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={loadData}
-            className="h-10 px-4 bg-[#1e293b] border border-[#2e374a] rounded-lg text-xs font-bold text-white hover:bg-slate-800 transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Sync Logs
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={loadData} className="btn btn-ghost">
+            <RefreshCw size={14} /> Sync
           </button>
-          <button
-            onClick={handleClear}
-            className="h-10 px-4 bg-[#311b1b] border border-rose-900/40 rounded-lg text-xs font-bold text-rose-300 hover:bg-[#412222] transition-all cursor-pointer"
-          >
-            Clear Active Logs
+          <button onClick={handleClear} className="btn btn-danger">
+            Clear logs
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 28, alignItems: "start" }}>
         
-        {/* Work Order Panel (Left 7 columns) */}
-        <div className="lg:col-span-7 bg-[#111827]/80 border border-[#1e293b] rounded-xl p-5 shadow-xl flex flex-col gap-4">
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-2 text-[#00f5d4] flex items-center gap-2">
-            <Wrench className="h-4 w-4 text-[#00f5d4]" />
-            Active Work Order
+        <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <h3 className="label" style={{ color: "var(--accent)", display: "flex", alignItems: "center", gap: 8 }}>
+            <Wrench size={14} color="var(--accent)" />
+            Active work order
           </h3>
 
           {workOrder ? (
@@ -154,11 +147,10 @@ export default function MaintenancePage() {
           )}
         </div>
 
-        {/* Alerts Log Panel (Right 5 columns) */}
-        <div className="lg:col-span-5 bg-[#111827]/80 border border-[#1e293b] rounded-xl p-5 shadow-xl flex flex-col gap-4">
-          <h3 className="text-xs font-bold text-[#00f5d4] uppercase tracking-wider mb-2 flex items-center gap-2">
-            <Mail className="h-4 w-4 text-[#00f5d4]" />
-            Push Dispatch History
+        <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <h3 className="label" style={{ color: "var(--accent)", display: "flex", alignItems: "center", gap: 8 }}>
+            <Mail size={14} color="var(--accent)" />
+            Push dispatch
           </h3>
 
           {alerts.length > 0 ? (

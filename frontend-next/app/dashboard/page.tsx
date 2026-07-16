@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Gauge, ShieldAlert, CheckCircle2, AlertTriangle, Play, RefreshCw, BarChart2 } from "lucide-react";
+import { ShieldAlert, CheckCircle2, AlertTriangle, Play, RefreshCw } from "lucide-react";
 
 interface ComplianceReport {
   docName: string;
@@ -16,19 +16,26 @@ interface ComplianceReport {
   gaps: string[];
 }
 
+const CHECK_LABELS: { key: keyof ComplianceReport["checks"]; label: string }[] = [
+  { key: "loto", label: "LOTO" },
+  { key: "ppe", label: "PPE" },
+  { key: "grounding", label: "Grounding" },
+  { key: "ventilation", label: "Gas testing" },
+];
+
 export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [complianceData, setComplianceData] = useState<ComplianceReport[]>([
     {
       docName: "DOC_Pump_P-201_O&M_Manual.pdf",
-      category: "Rotary Equipment Standard",
+      category: "Rotary equipment",
       safetyScore: 75,
       checks: { loto: true, grounding: false, ppe: true, ventilation: true },
       gaps: ["OISD-GDN-180: Electrostatic grounding bonding procedure omitted from maintenance routine."]
     },
     {
       docName: "SOP_Turbine_Bearing_Overhaul.pdf",
-      category: "Safety Operating Procedure",
+      category: "Safety procedure",
       safetyScore: 50,
       checks: { loto: true, grounding: false, ppe: true, ventilation: false },
       gaps: [
@@ -38,19 +45,20 @@ export default function Dashboard() {
     },
     {
       docName: "REG_Compressor_C-101_Standard.pdf",
-      category: "OEM Guidelines",
+      category: "OEM guidelines",
       safetyScore: 100,
       checks: { loto: true, grounding: true, ppe: true, ventilation: true },
       gaps: []
     }
   ]);
 
+  // Defaults match latest benchmark / model card
   const [metrics, setMetrics] = useState({
-    entity_accuracy: 94.6,
-    query_accuracy: 96.2,
+    entity_accuracy: 82.7,
+    query_accuracy: 92.6,
     kg_linkage: 91.8,
-    time_to_answer: 0.78,
-    compliance_gap_accuracy: 98.4
+    time_to_answer: 2.8,
+    compliance_gap_accuracy: 75.0
   });
 
   const fetchLiveMetrics = async () => {
@@ -83,152 +91,141 @@ export default function Dashboard() {
   const runDiagnostics = async () => {
     setLoading(true);
     await fetchLiveMetrics();
-    setTimeout(() => {
-      setLoading(false);
-    }, 800);
+    setTimeout(() => setLoading(false), 600);
   };
 
+  const metricCards = [
+    { label: "RAG recall", value: `${metrics.entity_accuracy}%`, hint: "vs keyword baseline +20.5 pp", accent: "var(--accent)" },
+    { label: "Bearing model", value: `${metrics.query_accuracy}%`, hint: "Real CWRU held-out accuracy", accent: "#a5b4fc" },
+    { label: "KG linkage", value: `${metrics.kg_linkage}%`, hint: "Ontology coverage", accent: "#c084fc" },
+    { label: "Median latency", value: `${metrics.time_to_answer}s`, hint: "End-to-end query time", accent: "var(--warning)" },
+    { label: "Compliance guard", value: `${metrics.compliance_gap_accuracy}%`, hint: "Safety checklist coverage", accent: "var(--success)" },
+  ];
+
   return (
-    <div className="flex-1 flex flex-col p-10 gap-8">
-      
-      {/* Page Header */}
-      <div className="flex justify-between items-center bg-[#0d1527] border border-[#1e293b] p-8 rounded-2xl shadow-lg">
+    <div className="page-shell">
+      <div className="page-header">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-wide">COMPLIANCE & SYSTEM CONTROL CONTROL</h2>
-          <p className="text-xs text-[#64748b]">Monitor real-time benchmark metrics and regulatory safety coverage</p>
+          <div className="label">Operations</div>
+          <h1 className="page-title" style={{ marginTop: 8 }}>Compliance & system control</h1>
+          <p className="page-subtitle">
+            Benchmark metrics and regulatory safety coverage for BPCL Mathura assets.
+          </p>
         </div>
-        <button
-          onClick={runDiagnostics}
-          disabled={loading}
-          className="px-4 py-2 bg-gradient-to-r from-[#0072ff] to-[#00f5d4] hover:shadow-lg transition-all rounded-lg text-xs font-bold text-[#0b0f19] flex items-center gap-2 cursor-pointer disabled:opacity-50"
-        >
-          {loading ? (
-            <RefreshCw className="h-4 w-4 animate-spin" />
-          ) : (
-            <Play className="h-4 w-4" />
-          )}
-          Run Performance Audit
+        <button className="btn btn-primary" onClick={runDiagnostics} disabled={loading}>
+          {loading ? <RefreshCw size={14} style={{ animation: "spin 1s linear infinite" }} /> : <Play size={14} />}
+          Run performance audit
         </button>
       </div>
 
-      {/* Top metrics row */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-        
-        {/* Metric 1 */}
-        <div className="bg-[#111827]/85 border border-[#1e293b] rounded-2xl p-6 shadow-lg flex flex-col items-center justify-center relative overflow-hidden group">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-cyan-500"></div>
-          <span className="text-[10px] text-[#64748b] font-bold uppercase tracking-wider mb-2">Entity Precision</span>
-          <div className="text-2xl font-bold text-white mb-1 font-mono">{metrics.entity_accuracy}%</div>
-          <p className="text-[10px] text-emerald-400">NER extraction benchmark</p>
-        </div>
-
-        {/* Metric 2 */}
-        <div className="bg-[#111827]/85 border border-[#1e293b] rounded-xl p-5 shadow-lg flex flex-col items-center text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-purple-500"></div>
-          <span className="text-[10px] text-[#64748b] font-bold uppercase tracking-wider mb-2">Query Accuracy</span>
-          <div className="text-2xl font-bold text-white mb-1 font-mono">{metrics.query_accuracy}%</div>
-          <p className="text-[10px] text-emerald-400">RAG intent classification</p>
-        </div>
-
-        {/* Metric 3 */}
-        <div className="bg-[#111827]/85 border border-[#1e293b] rounded-xl p-5 shadow-lg flex flex-col items-center text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-pink-500"></div>
-          <span className="text-[10px] text-[#64748b] font-bold uppercase tracking-wider mb-2">KG Link Density</span>
-          <div className="text-2xl font-bold text-white mb-1 font-mono">{metrics.kg_linkage}%</div>
-          <p className="text-[10px] text-emerald-400">Multi-hop traversal reach</p>
-        </div>
-
-        {/* Metric 4 */}
-        <div className="bg-[#111827]/85 border border-[#1e293b] rounded-xl p-5 shadow-lg flex flex-col items-center text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
-          <span className="text-[10px] text-[#64748b] font-bold uppercase tracking-wider mb-2">Audit Response</span>
-          <div className="text-2xl font-bold text-white mb-1 font-mono">{metrics.time_to_answer}s</div>
-          <p className="text-[10px] text-emerald-400">Median retrieval latency</p>
-        </div>
-
-        {/* Metric 5 */}
-        <div className="bg-[#111827]/85 border border-[#1e293b] rounded-xl p-5 shadow-lg flex flex-col items-center text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
-          <span className="text-[10px] text-[#64748b] font-bold uppercase tracking-wider mb-2">Compliance Guard</span>
-          <div className="text-2xl font-bold text-white mb-1 font-mono">{metrics.compliance_gap_accuracy}%</div>
-          <p className="text-[10px] text-emerald-400">Safety check verification</p>
-        </div>
-
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 20 }}>
+        {metricCards.map((m) => (
+          <div key={m.label} className="card" style={{ padding: "24px 22px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: m.accent, opacity: 0.85 }} />
+            <div className="label" style={{ marginBottom: 14 }}>{m.label}</div>
+            <div style={{ fontSize: 28, fontWeight: 560, letterSpacing: "-0.03em", lineHeight: 1 }}>
+              {m.value}
+            </div>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 12, lineHeight: 1.45 }}>
+              {m.hint}
+            </p>
+          </div>
+        ))}
       </div>
 
-      {/* Main Audit Database List */}
-      <div className="bg-[#111827]/80 border border-[#1e293b] rounded-2xl p-8 shadow-xl">
-        <h3 className="text-xs font-bold text-[#00f5d4] uppercase tracking-wider mb-6 flex items-center gap-2">
-          <ShieldAlert className="h-4 w-4 text-[#00f5d4]" />
-          SOP Safety Audit Database
-        </h3>
+      <div className="card card-pad">
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28 }}>
+          <ShieldAlert size={16} color="var(--accent)" />
+          <h2 className="label" style={{ color: "var(--accent)", letterSpacing: "0.06em" }}>
+            SOP safety audit
+          </h2>
+        </div>
 
-        <div className="flex flex-col gap-4">
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           {complianceData.map((doc, idx) => (
-            <div key={idx} className="border border-[#1e293b] bg-[#0d1527]/50 rounded-2xl p-8 flex flex-col md:flex-row md:items-center justify-between gap-8 hover:bg-[#1e293b]/40 transition-colors">
-              
-              <div className="flex-1 flex flex-col gap-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-white">{doc.docName}</span>
-                  <span className="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono">
-                    {doc.category}
-                  </span>
+            <div
+              key={idx}
+              style={{
+                border: "1px solid var(--border)",
+                background: "var(--bg-base)",
+                borderRadius: "var(--r-md)",
+                padding: "28px 28px",
+                display: "grid",
+                gridTemplateColumns: "1fr auto",
+                gap: 32,
+                alignItems: "start",
+              }}
+            >
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+                  <span style={{ fontSize: 14, fontWeight: 560 }}>{doc.docName}</span>
+                  <span className="badge badge-default">{doc.category}</span>
                 </div>
-                
-                {/* Visual Checklist Hops */}
-                <div className="flex flex-wrap items-center gap-4 mt-2">
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className={doc.checks.loto ? "text-[#00f5d4]" : "text-slate-600"}>
-                      <CheckCircle2 className="h-4 w-4" />
-                    </span>
-                    <span className="text-[#94a3b8]">LOTO Isolation</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className={doc.checks.ppe ? "text-[#00f5d4]" : "text-slate-600"}>
-                      <CheckCircle2 className="h-4 w-4" />
-                    </span>
-                    <span className="text-[#94a3b8]">PPE Specs</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className={doc.checks.grounding ? "text-[#00f5d4]" : "text-slate-600"}>
-                      <CheckCircle2 className="h-4 w-4" />
-                    </span>
-                    <span className="text-[#94a3b8]">Grounding Bond</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className={doc.checks.ventilation ? "text-[#00f5d4]" : "text-slate-600"}>
-                      <CheckCircle2 className="h-4 w-4" />
-                    </span>
-                    <span className="text-[#94a3b8]">Gas Testing</span>
-                  </div>
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 20, marginBottom: doc.gaps.length ? 20 : 0 }}>
+                  {CHECK_LABELS.map(({ key, label }) => (
+                    <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <CheckCircle2
+                        size={15}
+                        color={doc.checks[key] ? "var(--accent)" : "var(--text-muted)"}
+                        opacity={doc.checks[key] ? 1 : 0.35}
+                      />
+                      <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{label}</span>
+                    </div>
+                  ))}
                 </div>
 
                 {doc.gaps.length > 0 && (
-                  <div className="mt-3 flex flex-col gap-1">
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {doc.gaps.map((gap, gIdx) => (
-                      <div key={gIdx} className="text-xs text-amber-500 flex items-start gap-2 bg-amber-950/15 p-2.5 rounded border border-amber-900/20 font-mono">
-                        <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                        <span>{gap}</span>
+                      <div
+                        key={gIdx}
+                        style={{
+                          display: "flex",
+                          gap: 12,
+                          alignItems: "flex-start",
+                          padding: "14px 16px",
+                          borderRadius: "var(--r-sm)",
+                          background: "rgba(245,158,11,0.06)",
+                          border: "1px solid rgba(245,158,11,0.18)",
+                        }}
+                      >
+                        <AlertTriangle size={15} color="var(--warning)" style={{ marginTop: 2, flexShrink: 0 }} />
+                        <span style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.55 }}>{gap}</span>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              <div className="flex flex-col items-center justify-center p-4 bg-[#111827] border border-[#2e374a] rounded-xl min-w-[120px]">
-                <span className="text-[10px] text-[#64748b] uppercase tracking-wider mb-1">Safety Rating</span>
-                <span className={`text-2xl font-bold font-mono ${
-                  doc.safetyScore === 100 ? "text-[#00f5d4]" : doc.safetyScore >= 70 ? "text-amber-400" : "text-rose-500"
-                }`}>
+              <div style={{
+                minWidth: 112,
+                padding: "20px 18px",
+                borderRadius: "var(--r-md)",
+                border: "1px solid var(--border)",
+                background: "var(--bg-surface)",
+                textAlign: "center",
+              }}>
+                <div className="label" style={{ marginBottom: 10 }}>Safety</div>
+                <div style={{
+                  fontSize: 26,
+                  fontWeight: 560,
+                  letterSpacing: "-0.03em",
+                  color: doc.safetyScore === 100 ? "var(--accent)" : doc.safetyScore >= 70 ? "var(--warning)" : "var(--danger)",
+                }}>
                   {doc.safetyScore}%
-                </span>
+                </div>
               </div>
-
             </div>
           ))}
         </div>
       </div>
-      
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 1100px) {
+          .page-shell > div:nth-child(2) { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
     </div>
   );
 }

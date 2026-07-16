@@ -117,14 +117,14 @@ function PipelineBar({ loading, result }: { loading: boolean; result: QueryResul
 function MetricCard({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) {
   return (
     <div style={{
-      padding: "12px 16px",
-      background: "var(--bg-base)",
-      border: "1px solid var(--border-dim)",
-      borderRadius: "var(--r-sm)",
-      flex: 1,
+      padding: "18px 20px",
+      background: "var(--bg-surface)",
+      border: "1px solid var(--border)",
+      borderRadius: "var(--r-md)",
+      minHeight: 88,
     }}>
-      <div className="label" style={{ marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: valueColor || "var(--text-primary)" }}>
+      <div className="label" style={{ marginBottom: 10 }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 560, color: valueColor || "var(--text-primary)", lineHeight: 1.45 }}>
         {value}
       </div>
     </div>
@@ -181,22 +181,17 @@ function LogConsole({ logs }: { logs: AgentLog[] }) {
     l === "WARNING" ? "#f59e0b" : l === "ERROR" ? "#f43f5e" : "#22d3ee";
 
   return (
-    <div style={{
-      background: "var(--bg-base)",
-      border: "1px solid var(--border-dim)",
-      borderRadius: "var(--r-sm)",
-      padding: "10px 14px",
-    }}>
-      <div className="label" style={{ marginBottom: 8 }}>Execution log</div>
-      <div ref={ref} style={{ maxHeight: 120, overflowY: "auto", display: "flex", flexDirection: "column", gap: 3 }}>
+    <div className="card" style={{ padding: "22px 24px" }}>
+      <div className="label" style={{ marginBottom: 14 }}>Execution log</div>
+      <div ref={ref} style={{ maxHeight: 180, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
         {logs.length === 0 ? (
-          <span className="mono" style={{ color: "var(--text-muted)" }}>— no logs —</span>
+          <span className="mono" style={{ color: "var(--text-muted)" }}>— waiting for run —</span>
         ) : (
           logs.map((log, i) => (
-            <div key={i} className="mono" style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-              <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>[{log.timestamp}]</span>
-              <span style={{ color: levelColor(log.level), fontWeight: 700, flexShrink: 0 }}>[{log.level}]</span>
-              <span style={{ color: "#d4d4d8" }}>{log.message}</span>
+            <div key={i} className="mono" style={{ display: "flex", gap: 12, alignItems: "flex-start", lineHeight: 1.55 }}>
+              <span style={{ color: "var(--text-muted)", flexShrink: 0, minWidth: 72 }}>{log.timestamp}</span>
+              <span style={{ color: levelColor(log.level), fontWeight: 600, flexShrink: 0, minWidth: 64 }}>{log.level}</span>
+              <span style={{ color: "var(--text-secondary)" }}>{log.message}</span>
             </div>
           ))
         )}
@@ -300,34 +295,35 @@ export default function Home() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 32, padding: "32px 40px", flex: 1 }}>
+    <div className="page-shell">
 
       {/* ── Page header ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div className="page-header">
         <div>
-          <div className="label">Diagnostics Engine</div>
-          <h1 style={{ fontSize: 18, fontWeight: 600, color: "var(--text-primary)", marginTop: 2 }}>
-            Maintenance Co-Pilot
-          </h1>
+          <div className="label">Diagnostics engine</div>
+          <h1 className="page-title" style={{ marginTop: 8 }}>Maintenance Co-Pilot</h1>
+          <p className="page-subtitle">
+            Query SOPs, vibration telemetry, and tacit knowledge in one closed loop.
+          </p>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--success)", boxShadow: "0 0 6px #10b98166" }} />
-          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>API Live</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, paddingTop: 8 }}>
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--success)", boxShadow: "0 0 6px #10b98166" }} />
+          <span style={{ fontSize: 13, color: "var(--text-muted)" }}>API live</span>
         </div>
       </div>
 
       {/* ── Pipeline strip ── */}
-      <div className="card" style={{ padding: "24px 32px" }}>
+      <div className="card card-pad" style={{ paddingTop: 28, paddingBottom: 28 }}>
         <PipelineBar loading={loading} result={result} />
       </div>
 
       {/* ── Main grid ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 32, alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(300px, 340px) 1fr", gap: 40, alignItems: "start" }}>
 
         {/* ── LEFT: Query panel ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          <div className="card" style={{ padding: 24 }}>
-            <form onSubmit={handleQuery} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+          <div className="card card-pad">
+            <form onSubmit={handleQuery} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div className="label">Query</div>
               <textarea
                 className="textarea"
@@ -336,7 +332,7 @@ export default function Home() {
                 rows={5}
                 placeholder="Describe the fault or ask a maintenance question…"
               />
-              <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: "flex", gap: 10 }}>
                 <button
                   type="submit"
                   disabled={loading}
@@ -355,16 +351,16 @@ export default function Home() {
           </div>
 
           {/* Quick queries */}
-          <div className="card" style={{ padding: 24 }}>
-            <div className="label" style={{ marginBottom: 10 }}>Quick queries</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div className="card card-pad">
+            <div className="label" style={{ marginBottom: 16 }}>Quick queries</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {QUICK_QUERIES.map((q) => (
                 <button
                   key={q.label}
                   onClick={() => setQuery(q.query)}
                   style={{
                     display: "flex", alignItems: "center", justifyContent: "space-between",
-                    padding: "8px 10px", borderRadius: "var(--r-sm)",
+                    padding: "14px 14px", borderRadius: "var(--r-sm)",
                     background: "var(--bg-base)", border: "1px solid var(--border-dim)",
                     cursor: "pointer", textAlign: "left", width: "100%",
                     transition: "border-color 0.15s, background 0.15s",
@@ -372,8 +368,8 @@ export default function Home() {
                   onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
                   onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border-dim)")}
                 >
-                  <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{q.label}</span>
-                  <ChevronRight size={12} color="var(--text-muted)" />
+                  <span style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.4 }}>{q.label}</span>
+                  <ChevronRight size={14} color="var(--text-muted)" />
                 </button>
               ))}
             </div>
@@ -381,7 +377,7 @@ export default function Home() {
         </div>
 
         {/* ── RIGHT: Results panel ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
 
           {/* Empty state */}
           {!result && !loading && (
@@ -423,7 +419,7 @@ export default function Home() {
 
           {/* Results */}
           {result && (
-            <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
               {/* Log console */}
               {result.agent_log && result.agent_log.length > 0 && (
@@ -432,8 +428,8 @@ export default function Home() {
 
               {/* Physics metrics */}
               {result.physics_result && (
-                <div style={{ display: "flex", gap: 10 }}>
-                  <MetricCard label="Fault Diagnosis" value={result.physics_result.fault_type} />
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+                  <MetricCard label="Fault diagnosis" value={result.physics_result.fault_type} />
                   <MetricCard
                     label="Severity"
                     value={result.physics_result.severity}
@@ -445,115 +441,114 @@ export default function Home() {
 
               {/* Conflict detected */}
               {result.conflict_detected && !conflictResolution && result.conflict_details && (
-                <div className="conflict-card animate-slide-up" style={{ padding: 24 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                <div className="conflict-card animate-slide-up" style={{ padding: 28 }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 24 }}>
                     <div style={{
-                      width: 32, height: 32, borderRadius: "var(--r-sm)",
+                      width: 40, height: 40, borderRadius: "var(--r-sm)", flexShrink: 0,
                       background: "rgba(244,63,94,0.1)", border: "1px solid rgba(244,63,94,0.3)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
-                      <AlertTriangle size={15} color="var(--danger)" />
+                      <AlertTriangle size={18} color="var(--danger)" />
                     </div>
-                    <div>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>Conflict Detected</p>
-                      <p style={{ fontSize: 11, color: "var(--text-muted)" }}>{result.conflict_details.description}</p>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>Conflict detected</p>
+                      <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 6, lineHeight: 1.55 }}>
+                        {result.conflict_details.description}
+                      </p>
                     </div>
                     {result.auto_resolution_recommendation && (
-                      <div className="badge badge-warning" style={{ marginLeft: "auto" }}>
-                        AI recommends: {result.auto_resolution_recommendation.winner}
+                      <div className="badge badge-warning">
+                        Recommends: {result.auto_resolution_recommendation.winner}
                       </div>
                     )}
                   </div>
 
                   {/* SOP vs Physics two-column */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
                     <div style={{
-                      padding: "12px 14px",
-                      background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.2)",
-                      borderRadius: "var(--r-sm)",
+                      padding: "20px 20px",
+                      background: "rgba(129,140,248,0.06)", border: "1px solid rgba(129,140,248,0.2)",
+                      borderRadius: "var(--r-md)",
                     }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                        <FileText size={11} color="#818cf8" />
-                        <span style={{ fontSize: 10, fontWeight: 600, color: "#818cf8", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                          SOP Document
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                        <FileText size={14} color="#a5b4fc" />
+                        <span style={{ fontSize: 11, fontWeight: 600, color: "#a5b4fc", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                          SOP document
                         </span>
                         <span className="badge badge-info" style={{ marginLeft: "auto" }}>
                           {(result.conflict_details.document_confidence * 100).toFixed(0)}%
                         </span>
                       </div>
-                      <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                      <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.65 }}>
                         {result.conflict_details.document_hypothesis}
                       </p>
                     </div>
                     <div style={{
-                      padding: "12px 14px",
+                      padding: "20px 20px",
                       background: "var(--accent-dim)", border: "1px solid rgba(34,211,238,0.2)",
-                      borderRadius: "var(--r-sm)",
+                      borderRadius: "var(--r-md)",
                     }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                        <Activity size={11} color="var(--accent)" />
-                        <span style={{ fontSize: 10, fontWeight: 600, color: "var(--accent)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                          Live Physics
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                        <Activity size={14} color="var(--accent)" />
+                        <span style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                          Live physics
                         </span>
                         <span className="badge badge-accent" style={{ marginLeft: "auto" }}>
                           {(result.conflict_details.physics_confidence * 100).toFixed(0)}%
                         </span>
                       </div>
-                      <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                      <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.65 }}>
                         {result.conflict_details.physics_result}
                       </p>
                     </div>
                   </div>
 
                   {/* Resolution buttons */}
-                  <div style={{ display: "flex", gap: 8 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: 12 }}>
                     <button
                       className="btn btn-primary"
-                      style={{ flex: 1, fontSize: 12 }}
                       onClick={() => handleResolve("physics")}
                       disabled={resolving}
                     >
-                      <Activity size={12} /> Trust Live Physics
+                      <Activity size={14} /> Trust live physics
                     </button>
                     <button
                       className="btn btn-ghost"
-                      style={{ flex: 1, fontSize: 12 }}
                       onClick={() => handleResolve("documents")}
                       disabled={resolving}
                     >
-                      <FileText size={12} /> Trust SOP Document
+                      <FileText size={14} /> Trust SOP
                     </button>
                     <button
                       className="btn btn-ghost"
-                      style={{ fontSize: 12 }}
                       onClick={() => setShowInterview(!showInterview)}
                     >
-                      <MessageSquare size={12} /> Ask Engineer
+                      <MessageSquare size={14} /> Ask engineer
                     </button>
                   </div>
 
                   {/* Tacit interview */}
                   {showInterview && (
                     <div style={{
-                      marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border)",
-                      display: "flex", flexDirection: "column", gap: 10,
+                      marginTop: 24, paddingTop: 24, borderTop: "1px solid var(--border)",
+                      display: "flex", flexDirection: "column", gap: 14,
                     }}>
-                      <div style={{ fontSize: 12, color: "var(--warning)", fontFamily: "monospace" }}>
+                      <div style={{ fontSize: 13, color: "var(--warning)", lineHeight: 1.6 }}>
                         {result.human_question}
                       </div>
                       <textarea
                         className="textarea"
-                        rows={2}
+                        rows={3}
                         value={humanResponse}
                         onChange={(e) => setHumanResponse(e.target.value)}
                         placeholder="Share the unwritten workaround or field knowledge…"
                       />
-                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                        <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => handleResolve("human")}>
-                          Submit Rule
-                        </button>
-                        <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => setShowInterview(false)}>
+                      <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                        <button className="btn btn-ghost" onClick={() => setShowInterview(false)}>
                           Cancel
+                        </button>
+                        <button className="btn btn-primary" onClick={() => handleResolve("human")}>
+                          Submit rule
                         </button>
                       </div>
                     </div>
@@ -563,26 +558,26 @@ export default function Home() {
 
               {/* Conflict resolved */}
               {conflictResolution && (
-                <div className="card" style={{ padding: "12px 16px", display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  <CheckCircle size={16} color="var(--success)" style={{ marginTop: 1, flexShrink: 0 }} />
+                <div className="card" style={{ padding: "20px 24px", display: "flex", alignItems: "flex-start", gap: 14 }}>
+                  <CheckCircle size={18} color="var(--success)" style={{ marginTop: 2, flexShrink: 0 }} />
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 600 }}>
+                    <p style={{ fontSize: 14, fontWeight: 600 }}>
                       Conflict resolved — <span style={{ color: "var(--accent)" }}>{conflictResolution.toUpperCase()}</span> applied
                     </p>
                     {conflictResolution === "human" && resolutionDetails?.structured_rule && (
                       <div style={{
-                        marginTop: 10, padding: "10px 12px",
+                        marginTop: 14, padding: "14px 16px",
                         background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)",
                         borderRadius: "var(--r-sm)",
                       }}>
-                        <div className="label" style={{ color: "var(--success)", marginBottom: 4 }}>Tacit rule captured</div>
-                        <p className="mono" style={{ color: "#6ee7b7", lineHeight: 1.6 }}>
+                        <div className="label" style={{ color: "var(--success)", marginBottom: 8 }}>Tacit rule captured</div>
+                        <p style={{ fontSize: 13, color: "#6ee7b7", lineHeight: 1.6 }}>
                           &ldquo;{resolutionDetails.structured_rule.rule_text}&rdquo;
                         </p>
                       </div>
                     )}
                     {resolutionDetails?.healed_nodes && resolutionDetails.healed_nodes.length > 0 && (
-                      <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>
+                      <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 10 }}>
                         Knowledge graph updated · {resolutionDetails.healed_nodes.length} node(s) healed
                       </p>
                     )}
@@ -592,18 +587,18 @@ export default function Home() {
 
               {/* Final answer */}
               {(!result.conflict_detected || conflictResolution) && result.final_answer && (
-                <div className="card" style={{ padding: 24 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <div className="card card-pad">
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
                     <div className="label">Synthesized action plan</div>
                     <button
                       className="btn btn-ghost"
-                      style={{ fontSize: 11, padding: "4px 10px" }}
+                      style={{ padding: "8px 12px" }}
                       onClick={() => window.print()}
                     >
-                      <Eye size={11} /> Export PDF
+                      <Eye size={13} /> Export PDF
                     </button>
                   </div>
-                  <div className="mono" style={{ color: "var(--text-secondary)", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>
+                  <div style={{ color: "var(--text-secondary)", lineHeight: 1.75, whiteSpace: "pre-wrap", fontSize: 13.5 }}>
                     {result.final_answer}
                   </div>
                 </div>
@@ -611,9 +606,9 @@ export default function Home() {
 
               {/* Multi-agent debate */}
               {result.debate && (
-                <div className="card" style={{ padding: 24 }}>
-                  <div className="label" style={{ marginBottom: 12 }}>Multi-agent debate</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div className="card card-pad">
+                  <div className="label" style={{ marginBottom: 18 }}>Multi-agent debate</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                     {Object.entries(result.debate).map(([agent, text]) => (
                       <AgentBubble key={agent} agent={agent} text={text} />
                     ))}
