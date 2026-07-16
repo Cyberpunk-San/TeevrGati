@@ -156,22 +156,30 @@ To configure the API server or customize the AI models:
      HF_TOKEN=your-huggingface-token
      ```
    * **Fallback Hierarchy**: The backend first attempts the configured fine-tuned model. If not configured or if execution fails, it falls back to:
-     1. **Gemini** (`gemini-1.5-flash`)
-     2. **OpenAI** (defaults to `gpt-3.5-turbo` or the custom `OPENAI_MODEL`)
-     3. **Hugging Face** (defaults to `mistralai/Mistral-7B-Instruct-v0.2` or the custom `HF_MODEL`)
+      1. **Gemini** (`gemini-2.0-flash`) — default
+      2. **OpenAI** (defaults to `gpt-3.5-turbo` or the custom `OPENAI_MODEL`)
+      3. **Hugging Face** (defaults to `mistralai/Mistral-7B-Instruct-v0.2` or the custom `HF_MODEL`)
 
 ---
 
 ## 🚀 Running the Platform
 
-### Step 1: Start the API Server
-In a terminal, run the Python API gateway:
+### Step 1: (Optional) Enable PaddleOCR for P&ID Drawings
+If you want PaddleOCR to parse scanned engineering drawings, set up the isolated Python 3.10 environment:
 ```bash
+bash scripts/setup_paddleocr.sh
+```
+> This creates `venv_paddle/` with Python 3.10 + PaddleOCR. The main backend gracefully skips PaddleOCR and uses Gemini Vision or regex if not set up.
+
+### Step 2: Start the API Server
+In a terminal, activate the venv and run the Python API gateway:
+```bash
+source venv/bin/activate
 python backend/server.py
 ```
 *The API gateway will start on **`http://localhost:8000`**.*
 
-### Step 2: Start the Next.js Web App
+### Step 3: Start the Next.js Web App
 Open a second terminal, navigate to the frontend directory, and run:
 ```bash
 cd frontend-next
@@ -183,12 +191,13 @@ npm run dev
 
 ## 🧪 Step-by-Step Demo Flow
 
-1. **Ask a Query**: Open the web app and enter:
+1. **Ask a Query**: Open the web app and type:
    > *"Pump P-201 is vibrating loudly. What could be wrong?"*
-2. **Observe the Debate & Conflict**: The console displays the **Multi-Agent Consensus Debate** dialogue where the Historian (manual), Physicist (live vibration envelope BPFO/RMS anomaly signature), and Operator (captured tacit log tweaks) voice their individual assessments before arriving at a consensus.
-3. **Execute Resolution**: Choose to apply the resolution. The Truth Engine updates the Knowledge Graph, marking the manual node as `outdated` and displaying the **Multi-Hop Traversal Proof** route.
-4. **Inspect Graph**: Navigate to the **Self-Healing Graph** tab to verify that outdated manual nodes have turned dim gray and that a green dashed `REPLACED_BY` link points to the active truth rule.
-5. **Verify Ingestion**: Navigate to the **SOP Ingest** tab. Drop a new PDF document into the dropzone to watch the parser parse it and automatically refresh the **Freshness Inventory** sidebar.
-6. **Monitor Compliance & Performance**: Navigate to the **Compliance & Metrics** tab to review real-time audit benchmarks (latency, NER extraction accuracy) and inspect regulatory safety gap alerts.
-7. **Toggle UI Theme**: Use the Sun/Moon toggle at the bottom of the sidebar to swap themes (from dark to high-visibility light theme).
-8. **Export Report**: On the main Diagnostics Console, click **Export Report PDF** to open the browser print dialog and save a clean safety report.
+   or click one of the **Quick Query** preset chips.
+2. **Watch the Pipeline**: The **Agent Pipeline** strip at the top lights up stage by stage — Historian → Simulator → Conflict → Synthesis.
+3. **Observe the Debate**: Scroll down to the **Multi-Agent Debate** section. Each agent (Historian, Physicist, Operator, Consensus) renders in a colour-coded bubble.
+4. **Resolve Conflict**: If a discrepancy is detected (e.g. 2019 SOP says 80 Nm torque, live physics says 95 Nm), the **Conflict Card** appears with a two-column SOP vs Physics view. Click **Trust Live Physics** or **Trust SOP Document**, or use **Ask Engineer** to capture tacit operator knowledge.
+5. **Review Action Plan**: Read the synthesised action plan in monospace format below the debate.
+6. **Inspect Graph**: Navigate to **KG Graph** in the sidebar — outdated nodes show as dim and `REPLACED_BY` edges appear as dashed green links.
+7. **Ingest New SOP**: Navigate to **Ingest SOP** and drag-drop a PDF to update the knowledge base live.
+8. **Export Report**: Click **Export PDF** on the results panel to print a clean safety report via the browser dialog.
