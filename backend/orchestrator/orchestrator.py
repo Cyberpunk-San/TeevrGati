@@ -308,11 +308,12 @@ class Orchestrator:
                     return res
 
         # 2. Fallbacks (Standard Flow)
-        # Try Gemini default
+        # Try Gemini 2.0 first, fall back to 1.5-flash (different quota pool)
         if gemini_key:
-            res = call_gemini("gemini-2.0-flash")
-            if res:
-                return res
+            for gemini_model in ["gemini-2.0-flash", "gemini-1.5-flash"]:
+                res = call_gemini(gemini_model)
+                if res:
+                    return res
 
         # Try OpenAI default
         if openai_key:

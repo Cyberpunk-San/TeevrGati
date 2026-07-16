@@ -36,7 +36,32 @@ except ImportError as e:
 from fastapi import FastAPI, Depends, HTTPException, Security, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+
+# ── JSON sanitiser ─────────────────────────────────────────────────────────────
+# FastAPI/jsonable_encoder cannot handle numpy scalars (numpy.bool_, numpy.int64,
+# numpy.float32, etc.).  This recurses through any dict/list structure and
+# converts every numpy scalar to its native Python equivalent.
+def sanitise_for_json(obj):
+    """Recursively convert numpy scalars → Python builtins so FastAPI can serialise."""
+    try:
+        import numpy as np
+        if isinstance(obj, (np.bool_,)):
+            return bool(obj)
+        if isinstance(obj, (np.integer,)):
+            return int(obj)
+        if isinstance(obj, (np.floating,)):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+    except ImportError:
+        pass
+    if isinstance(obj, dict):
+        return {k: sanitise_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [sanitise_for_json(v) for v in obj]
+    return obj
 
 # ----------------------------------------------------
 # Pydantic Schemas for Request Validation
@@ -92,6 +117,24 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
             detail="Unauthorized: Invalid or missing API key Bearer token."
         )
 
+# ── Orchestrator singleton ────────────────────────────────────────────────────
+# Initialised once at startup to avoid reloading sentence-transformers
+# (a ~5s cold-start) on every single request.
+_orchestrator_instance: Optional[Orchestrator] = None
+
+def get_orchestrator() -> Orchestrator:
+    global _orchestrator_instance
+    if _orchestrator_instance is None:
+        _orchestrator_instance = Orchestrator()
+        logger.info("[Orchestrator] Singleton initialised.")
+    return _orchestrator_instance
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info("[Startup] Pre-warming Orchestrator singleton...")
+    get_orchestrator()
+    logger.info("[Startup] Orchestrator ready.")
+
 # ----------------------------------------------------
 # API Endpoints
 # ----------------------------------------------------
@@ -99,7 +142,7 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
 def get_graph():
     """Retrieve the entire serialized state of the Knowledge Graph."""
     try:
-        orchestrator = Orchestrator()
+        orchestrator = get_orchestrator()
         graph_json = orchestrator.brain.kg.to_json()
         return json.loads(graph_json)
     except Exception as e:
@@ -113,7 +156,7 @@ def get_metrics():
         from backend.compliance.gap_detector import ComplianceGapDetector
         import glob
         
-        orchestrator = Orchestrator()
+        orchestrator = get_orchestrator()
         kg = orchestrator.brain.kg
         
         num_nodes = len(kg.graph.nodes)
@@ -303,7 +346,7 @@ def get_metrics():
 def run_query(request_payload: QueryRequest):
     """Executes a functional query against the RAG search and multi-hop engine."""
     try:
-        orchestrator = Orchestrator()
+        orchestrator = get_orchestrator()
         # Seed dynamic PDF manual automatically if it has not been ingested yet
         sample_pdf_path = "backend/data/sample/pump_manual.pdf"
         if not os.path.exists(sample_pdf_path):
@@ -315,7 +358,7 @@ def run_query(request_payload: QueryRequest):
                 orchestrator.brain.ingest_document(parse_result)
                 
         result = orchestrator.process_query(request_payload.query, asset_id=request_payload.asset_id)
-        return result
+        return JSONResponse(content=sanitise_for_json(result))
     except Exception as e:
         logger.error(f"Error processing query: {e}")
         raise HTTPException(
@@ -327,13 +370,13 @@ def run_query(request_payload: QueryRequest):
 def resolve_conflict(request_payload: ResolveRequest):
     """Reconciles discrepancies between documentation and live sensor telemetry."""
     try:
-        orchestrator = Orchestrator()
+        orchestrator = get_orchestrator()
         result = orchestrator.resolve_conflict(
             request_payload.query_result,
             request_payload.choice,
             request_payload.human_feedback
         )
-        return result
+        return JSONResponse(content=sanitise_for_json(result))
     except Exception as e:
         logger.error(f"Error executing conflict resolution: {e}")
         raise HTTPException(
@@ -357,7 +400,7 @@ def ingest_document(request_payload: IngestRequest):
         parse_result = parser.parse(temp_path)
         
         if parse_result.get('success'):
-            orchestrator = Orchestrator()
+            orchestrator = get_orchestrator()
             orchestrator.brain.ingest_document(parse_result)
             
         return parse_result
@@ -377,7 +420,7 @@ def get_contradictions():
     This is a first-class differentiator: most RAG systems only answer — this one detects conflict.
     """
     try:
-        orchestrator = Orchestrator()
+        orchestrator = get_orchestrator()
         kg = orchestrator.brain.kg
         vector = orchestrator.brain.vector
 
@@ -475,7 +518,7 @@ def push_shift_briefing(request_payload: ShiftBriefingRequest):
     WITHOUT being asked. This is the 'push, don't wait' differentiator.
     """
     try:
-        orchestrator = Orchestrator()
+        orchestrator = get_orchestrator()
         kg = orchestrator.brain.kg
 
         # Count open near-misses (outdated/flagged nodes)
@@ -559,7 +602,7 @@ def run_tacit_interview(request_payload: TacitInterviewRequest):
 def seed_graph():
     """Ensure the knowledge graph database is populated with seeded data nodes to prevent demo errors."""
     try:
-        orchestrator = Orchestrator()
+        orchestrator = get_orchestrator()
         kg = orchestrator.brain.kg
         
         # Load from config/seed_data.json if kg is empty
