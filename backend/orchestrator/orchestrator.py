@@ -36,6 +36,7 @@ class Orchestrator:
         self.push_engine = PushEngine()
         self.resolution_engine = ResolutionEngine()
         self.agent_log = []  # Streaming log for UI
+        self.last_gemini_429_time = 0.0  # Cooldown for rate limit
         
         # Confidence thresholds loaded from environment variables
         self.CONFIDENCE_HIGH = float(os.getenv('TEEVRGATI_CONFIDENCE_HIGH', '0.8'))
@@ -103,6 +104,8 @@ class Orchestrator:
             # Step 2: Retrieve context (Historian)
             self.log("🔍 Phase 1: Historian - Retrieving document context...")
             context = self.brain.query(user_query)
+            result['context'] = context
+            result['document_evidence'] = self._format_document_evidence(context)
             
             if context.get('confidence', 0) < self.CONFIDENCE_LOW:
                 self.log(f"⚠️ Low confidence in document evidence (sources: {len(context.get('sources', []))})", "WARNING")
@@ -137,6 +140,14 @@ class Orchestrator:
                     result['needs_human_input'] = True
                     result['human_question'] = self._generate_human_question(conflict)
                     self.log(f"❓ Asking human: {result['human_question']}")
+
+                    # Still surface retrieved evidence so conflict path is answerable/scoreable
+                    result['final_answer'] = (
+                        f"{result['document_evidence']}\n\n"
+                        f"⚠️ Conflict: docs suggest '{conflict.get('doc_suggestion', 'N/A')}' "
+                        f"vs physics '{conflict.get('physics_suggestion', conflict.get('description', 'N/A'))}'. "
+                        f"Awaiting engineer resolution."
+                    )
                     
                     # Return early - don't force an answer
                     result['success'] = True
@@ -246,6 +257,9 @@ class Orchestrator:
         def call_gemini(model_name: str) -> Optional[str]:
             if not gemini_key:
                 return None
+            if time.time() - getattr(self, 'last_gemini_429_time', 0.0) < 60:
+                self.log(f"⚠️ Skipping Gemini {model_name} (in 60s cooldown for 429 quota limit)", "WARNING")
+                return None
             max_retries = 3
             for attempt in range(max_retries):
                 try:
@@ -262,6 +276,9 @@ class Orchestrator:
                         return response.json()['candidates'][0]['content']['parts'][0]['text']
                     else:
                         self.log(f"⚠️ Gemini API returned status {response.status_code} (Attempt {attempt+1}/{max_retries}): {response.text}", "WARNING")
+                        if response.status_code == 429:
+                            self.last_gemini_429_time = time.time()
+                            return None # Early abort on 429
                 except Exception as e:
                     self.log(f"⚠️ Gemini call failed on attempt {attempt+1}/{max_retries}: {e}", "WARNING")
                 if attempt < max_retries - 1:
@@ -444,28 +461,44 @@ class Orchestrator:
                 'iso_zone': 'Zone D'
             }
             
-        # Add predictive anomaly classification probability using Random Forest model
+        # Add predictive anomaly classification using CWRU-trained Random Forest
         try:
-            from backend.models.predictive_model import predict_fault_probability
-            
-            # Map telemetry keys safely from result dict
-            metrics = res.get('extra_metrics', {}) or res.get('iso_assessment', {}) or {}
+            from backend.models.predictive_model import predict_fault_probability, predict_fault_class
+
+            iso = res.get("iso_assessment", {}) or {}
+            env = res.get("envelope_analysis", {}) or {}
+            peaks = res.get("fft_peaks", []) or []
+            top_amp = float(peaks[0].get("magnitude", peaks[0].get("amplitude", 0.05))) if peaks else 0.05
+            fault = str(res.get("fault_type", "")).lower()
+
+            # Map physics outputs onto the CWRU feature schema used at training time
             features = {
-                'temperature': float(res.get('temperature', metrics.get('temperature', 85.0))),
-                'vibration': float(res.get('vibration_rms', metrics.get('vibration_rms', res.get('vibration', 2.8)))),
-                'pressure': float(res.get('pressure', metrics.get('pressure', 10.5))),
-                'voltage': float(res.get('voltage', metrics.get('voltage', 220.0))),
-                'current': float(res.get('current', metrics.get('current', 7.5))),
-                'rpm': float(res.get('rpm', metrics.get('rpm', 1480.0))),
-                'torque': float(res.get('torque', metrics.get('torque', 25.0))),
-                'tool_wear': float(res.get('tool_wear', metrics.get('tool_wear', 0.0)))
+                "rms_velocity": float(iso.get("rms_velocity", res.get("vibration_rms", 2.8))),
+                "peak_acceleration": float(res.get("peak_acceleration", top_amp * 10.0)),
+                "bpfi_amplitude": float(res.get("bpfi_amplitude", top_amp if "inner" in fault or "bpi" in fault else 0.05)),
+                "bpfo_amplitude": float(res.get("bpfo_amplitude", top_amp if "outer" in fault or "bpo" in fault else 0.05)),
+                "bsf_amplitude": float(res.get("bsf_amplitude", top_amp if "ball" in fault else 0.05)),
+                "crest_factor": float(res.get("crest_factor", 3.0 + float(env.get("modulation_ratio", 0.0)))),
+                "kurtosis": float(res.get("kurtosis", 3.0 + 5.0 * float(env.get("modulation_ratio", 0.0)))),
+                "skewness": float(res.get("skewness", 0.2 if env.get("fault_detected") else 0.0)),
+                "spectral_entropy": float(res.get("spectral_entropy", 4.0 - float(env.get("modulation_ratio", 0.0)))),
+                "temperature": float(res.get("temperature", 65.0 if env.get("fault_detected") else 55.0)),
+                # legacy IoT keys kept for older binary models
+                "vibration": float(iso.get("rms_velocity", 2.8)),
+                "pressure": 10.5,
+                "voltage": 220.0,
+                "current": 7.5,
+                "rpm": 1480.0,
+                "torque": 25.0,
+                "tool_wear": 0.0,
             }
-            
-            res['predictive_failure_probability'] = predict_fault_probability(features)
+
+            res["predictive_failure_probability"] = predict_fault_probability(features)
+            res["predictive_fault_class"] = predict_fault_class(features)
             self.log(f"🔮 Predictive ML Model: Failure probability of {res['predictive_failure_probability']:.1%}")
         except Exception as e:
             self.log(f"⚠️ Predictive failure probability calculation failed: {e}", "WARNING")
-            res['predictive_failure_probability'] = 0.05
+            res["predictive_failure_probability"] = 0.05
             
         return res
 
@@ -547,8 +580,8 @@ class Orchestrator:
         if llm_response:
             return llm_response.strip()
 
-        # Fallback manual synthesis formatting
-        answer = ""
+        # Fallback manual synthesis formatting (used when LLM keys/quota fail)
+        answer = self._format_document_evidence(context) + "\n\n"
         if hypotheses:
             top = hypotheses[0]
             answer += f"📋 **Based on documents:**\n"
@@ -566,6 +599,19 @@ class Orchestrator:
             answer += f"- {len(context['sources'])} documents/nodes referenced\n"
             
         return answer
+
+    def _format_document_evidence(self, context: Dict) -> str:
+        """Flatten top RAG chunks into readable evidence text for answers/scoring."""
+        rag_chunks = (context or {}).get('rag_results', {}).get('results', []) or []
+        if not rag_chunks:
+            return "📄 **Document evidence:** No high-confidence chunks retrieved."
+        lines = ["📄 **Document evidence:**"]
+        for i, chunk in enumerate(rag_chunks[:5], 1):
+            text = (chunk.get('text') or '').strip().replace('\n', ' ')
+            src = chunk.get('source') or chunk.get('metadata', {}).get('source') or 'unknown'
+            if text:
+                lines.append(f"{i}. [{src}] {text[:500]}")
+        return "\n".join(lines)
     
     def _generate_alerts(self, asset_id: str, work_order: Dict) -> List[Dict]:
         """

@@ -27,6 +27,11 @@ backend/data/chroma_db/
 backend/data/raw/*
 backend/models/*.pkl
 
+# Large CWRU raw waveforms (download via Kaggle; features CSV is kept)
+backend/data/vibration/cwru_raw/
+backend/data/vibration/*.npz
+backend/data/vibration/CWRU_*.npz
+
 # IDEs
 .idea/
 .vscode/

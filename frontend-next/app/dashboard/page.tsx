@@ -89,10 +89,10 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex-1 flex flex-col p-6 gap-6">
+    <div className="flex-1 flex flex-col p-10 gap-8">
       
-      {/* Top Banner */}
-      <div className="flex justify-between items-center bg-[#0d1527] border border-[#1e293b] p-6 rounded-xl shadow-lg">
+      {/* Page Header */}
+      <div className="flex justify-between items-center bg-[#0d1527] border border-[#1e293b] p-8 rounded-2xl shadow-lg">
         <div>
           <h2 className="text-xl font-bold text-white tracking-wide">COMPLIANCE & SYSTEM CONTROL CONTROL</h2>
           <p className="text-xs text-[#64748b]">Monitor real-time benchmark metrics and regulatory safety coverage</p>
@@ -111,11 +111,11 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* Benchmarks Section */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+      {/* Top metrics row */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
         
         {/* Metric 1 */}
-        <div className="bg-[#111827]/85 border border-[#1e293b] rounded-xl p-5 shadow-lg flex flex-col items-center text-center relative overflow-hidden">
+        <div className="bg-[#111827]/85 border border-[#1e293b] rounded-2xl p-6 shadow-lg flex flex-col items-center justify-center relative overflow-hidden group">
           <div className="absolute top-0 left-0 right-0 h-1 bg-cyan-500"></div>
           <span className="text-[10px] text-[#64748b] font-bold uppercase tracking-wider mb-2">Entity Precision</span>
           <div className="text-2xl font-bold text-white mb-1 font-mono">{metrics.entity_accuracy}%</div>
@@ -156,16 +156,16 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Compliance Gap Dashboard Section */}
-      <div className="bg-[#111827]/80 border border-[#1e293b] rounded-xl p-6 shadow-xl">
-        <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4 text-[#00f5d4] flex items-center gap-2">
+      {/* Main Audit Database List */}
+      <div className="bg-[#111827]/80 border border-[#1e293b] rounded-2xl p-8 shadow-xl">
+        <h3 className="text-xs font-bold text-[#00f5d4] uppercase tracking-wider mb-6 flex items-center gap-2">
           <ShieldAlert className="h-4 w-4 text-[#00f5d4]" />
           SOP Safety Audit Database
         </h3>
 
         <div className="flex flex-col gap-4">
           {complianceData.map((doc, idx) => (
-            <div key={idx} className="border border-[#1e293b] bg-[#0d1527]/50 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-[#00f5d4]/40 transition-all duration-300">
+            <div key={idx} className="border border-[#1e293b] bg-[#0d1527]/50 rounded-2xl p-8 flex flex-col md:flex-row md:items-center justify-between gap-8 hover:bg-[#1e293b]/40 transition-colors">
               
               <div className="flex-1 flex flex-col gap-1.5">
                 <div className="flex items-center gap-2">

@@ -37,7 +37,17 @@ FALLBACK_SYNTHETIC_CWRU = True  # Generate synthetic CWRU-like data if download 
 
 
 def download_cwru_data():
-    """Try to download preprocessed CWRU CSV. Returns DataFrame or None."""
+    """Load local CWRU features (Kaggle convert) or download preprocessed CSV."""
+    # Prefer locally converted real Kaggle/CWRU features
+    local_features = DATA_DIR / "cwru_features.csv"
+    if local_features.exists():
+        print(f"  ✅ Found local real CWRU features: {local_features.name}")
+        return pd.read_csv(local_features), {
+            "filename": "cwru_features.csv",
+            "label_col": "label",
+            "drop_cols": ["label_name", "source_file"],
+        }
+
     for source in CWRU_SOURCES:
         dest = DATA_DIR / source["filename"]
         if dest.exists():
@@ -224,7 +234,7 @@ def main():
 
     # Also update the main fault_predictor.pkl so the server uses 4-class model
     main_model_path = MODEL_DIR / "fault_predictor.pkl"
-    # Merge: save a binary-compatible wrapper with new model
+    data_source = "CWRU Real" if using_real_data else "CWRU Synthetic"
     binary_payload = {
         "model": model,
         "features": features,
@@ -232,24 +242,32 @@ def main():
         "label_encoder": le,
         "test_accuracy": round(test_acc, 4),
         "n_classes": len(class_names),
-        "data_source": "CWRU Synthetic + Industrial IoT"
+        "data_source": data_source,
     }
     joblib.dump(binary_payload, main_model_path)
     print(f"  💾 Updated main model: {main_model_path}")
 
-    # Save summary JSON for demo slide
+    data_desc = (
+        "CWRU Bearing Dataset (Kaggle brjapon/cwru-bearing-datasets) — "
+        "real .mat waveforms, windowed FFT/envelope features"
+        if using_real_data
+        else "CWRU Synthetic fallback (Gaussian clusters)"
+    )
+
     summary_path = MODEL_DIR / "model_card.json"
     with open(summary_path, "w") as f:
         json.dump({
             "model_name": "TeevrGati Bearing Fault Classifier",
-            "version": "2.0",
-            "training_data": "CWRU Synthetic (12,000 samples) + AI4I 2020 IoT (10,000 samples) + Industrial Pump (20,000 samples)",
+            "version": "3.0",
+            "training_data": data_desc,
+            "data_source": data_source,
             "n_classes": len(class_names),
             "class_names": class_names,
             "test_accuracy": f"{test_acc:.1%}",
             "features": features,
             "framework": "scikit-learn RandomForestClassifier",
-            "use_case": "Bearing fault detection for rotating equipment at BPCL Mathura Refinery"
+            "use_case": "Bearing fault detection for rotating equipment at BPCL Mathura Refinery",
+            "citation": "Case Western Reserve University Bearing Data Center; Kaggle mirror brjapon/cwru-bearing-datasets",
         }, f, indent=2)
     print(f"  📋 Model card: {summary_path}")
     print(f"\n  ✅ CWRU training complete! Test accuracy: {test_acc:.1%}")

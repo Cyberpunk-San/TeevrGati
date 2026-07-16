@@ -32,9 +32,9 @@
   --info:    #6366f1;
 
   /* Radius */
-  --r-sm: 4px;
-  --r-md: 8px;
-  --r-lg: 12px;
+  --r-sm: 6px;
+  --r-md: 12px;
+  --r-lg: 16px;
 
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.5);
@@ -93,8 +93,8 @@ body {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
+  gap: 6px;
+  padding: 4px 10px;
   border-radius: 100px;
   font-size: 11px;
   font-weight: 500;
@@ -111,8 +111,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 7px 14px;
+  gap: 8px;
+  padding: 10px 18px;
   font-size: 13px;
   font-weight: 500;
   border-radius: var(--r-sm);
@@ -150,7 +150,7 @@ body {
   background: var(--bg-base);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
-  padding: 8px 12px;
+  padding: 10px 14px;
   font-size: 13px;
   color: var(--text-primary);
   outline: none;

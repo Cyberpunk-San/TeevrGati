@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-07-16 00:14:00",
+  "timestamp": "2026-07-16 17:07:42",
   "total_queries": 15,
-  "avg_teevrgati_recall": 0.4,
+  "avg_teevrgati_recall": 0.8267,
   "avg_baseline_recall": 0.6213,
-  "avg_teevrgati_latency_s": 15.889,
+  "avg_teevrgati_latency_s": 2.763,
   "avg_baseline_latency_s": 0.08,
-  "recall_improvement_pp": -22.1,
+  "recall_improvement_pp": 20.5,
   "individual_results": [
     {
       "q_num": 1,
@@ -21,7 +21,7 @@
       ],
       "teevrgati_recall": 0.6,
       "baseline_recall": 0.68,
-      "teevrgati_latency_s": 8.473,
+      "teevrgati_latency_s": 1.835,
       "baseline_latency_s": 0.08,
       "improvement": -8.0,
       "conflict_detected": true
@@ -38,11 +38,11 @@
         "mcc",
         "tagout"
       ],
-      "teevrgati_recall": 0.0,
+      "teevrgati_recall": 0.6,
       "baseline_recall": 0.68,
-      "teevrgati_latency_s": 5.237,
+      "teevrgati_latency_s": 1.492,
       "baseline_latency_s": 0.08,
-      "improvement": -68.0,
+      "improvement": -8.0,
       "conflict_detected": true
     },
     {
@@ -57,11 +57,11 @@
         "bearing",
         "replace"
       ],
-      "teevrgati_recall": 0.6,
+      "teevrgati_recall": 0.8,
       "baseline_recall": 0.6,
-      "teevrgati_latency_s": 4.805,
+      "teevrgati_latency_s": 0.748,
       "baseline_latency_s": 0.08,
-      "improvement": 0.0,
+      "improvement": 20.0,
       "conflict_detected": true
     },
     {
@@ -76,11 +76,11 @@
         "coverall",
         "safety"
       ],
-      "teevrgati_recall": 0.2,
+      "teevrgati_recall": 1.0,
       "baseline_recall": 0.68,
-      "teevrgati_latency_s": 33.38,
+      "teevrgati_latency_s": 3.864,
       "baseline_latency_s": 0.08,
-      "improvement": -48.0,
+      "improvement": 32.0,
       "conflict_detected": false
     },
     {
@@ -95,11 +95,11 @@
         "bearing",
         "inner"
       ],
-      "teevrgati_recall": 0.4,
+      "teevrgati_recall": 1.0,
       "baseline_recall": 0.6,
-      "teevrgati_latency_s": 4.82,
+      "teevrgati_latency_s": 0.894,
       "baseline_latency_s": 0.08,
-      "improvement": -20.0,
+      "improvement": 40.0,
       "conflict_detected": true
     },
     {
@@ -114,11 +114,11 @@
         "torque",
         "2024"
       ],
-      "teevrgati_recall": 0.8,
+      "teevrgati_recall": 1.0,
       "baseline_recall": 0.6,
-      "teevrgati_latency_s": 29.915,
+      "teevrgati_latency_s": 3.977,
       "baseline_latency_s": 0.08,
-      "improvement": 20.0,
+      "improvement": 40.0,
       "conflict_detected": false
     },
     {
@@ -133,11 +133,11 @@
         "sop",
         "revised"
       ],
-      "teevrgati_recall": 0.2,
+      "teevrgati_recall": 1.0,
       "baseline_recall": 0.68,
-      "teevrgati_latency_s": 41.904,
+      "teevrgati_latency_s": 3.287,
       "baseline_latency_s": 0.08,
-      "improvement": -48.0,
+      "improvement": 32.0,
       "conflict_detected": false
     },
     {
@@ -154,7 +154,7 @@
       ],
       "teevrgati_recall": 0.2,
       "baseline_recall": 0.6,
-      "teevrgati_latency_s": 35.974,
+      "teevrgati_latency_s": 3.662,
       "baseline_latency_s": 0.08,
       "improvement": -40.0,
       "conflict_detected": false
@@ -171,11 +171,11 @@
         "vane pass",
         "flow"
       ],
-      "teevrgati_recall": 0.4,
+      "teevrgati_recall": 0.8,
       "baseline_recall": 0.6,
-      "teevrgati_latency_s": 32.043,
+      "teevrgati_latency_s": 9.019,
       "baseline_latency_s": 0.08,
-      "improvement": -20.0,
+      "improvement": 20.0,
       "conflict_detected": false
     },
     {
@@ -190,11 +190,11 @@
         "ventilation",
         "permit"
       ],
-      "teevrgati_recall": 0.4,
+      "teevrgati_recall": 1.0,
       "baseline_recall": 0.6,
-      "teevrgati_latency_s": 5.475,
+      "teevrgati_latency_s": 1.031,
       "baseline_latency_s": 0.08,
-      "improvement": -20.0,
+      "improvement": 40.0,
       "conflict_detected": true
     },
     {
@@ -209,11 +209,11 @@
         "sequence",
         "seal"
       ],
-      "teevrgati_recall": 0.2,
+      "teevrgati_recall": 1.0,
       "baseline_recall": 0.6,
-      "teevrgati_latency_s": 14.47,
+      "teevrgati_latency_s": 4.648,
       "baseline_latency_s": 0.08,
-      "improvement": -40.0,
+      "improvement": 40.0,
       "conflict_detected": false
     },
     {
@@ -228,12 +228,12 @@
         "sap",
         "material"
       ],
-      "teevrgati_recall": 0.8,
+      "teevrgati_recall": 1.0,
       "baseline_recall": 0.6,
-      "teevrgati_latency_s": 5.139,
+      "teevrgati_latency_s": 1.223,
       "baseline_latency_s": 0.08,
-      "improvement": 20.0,
-      "conflict_detected": false
+      "improvement": 40.0,
+      "conflict_detected": true
     },
     {
       "q_num": 13,
@@ -247,12 +247,12 @@
         "bond",
         "electrostatic"
       ],
-      "teevrgati_recall": 0.4,
+      "teevrgati_recall": 1.0,
       "baseline_recall": 0.6,
-      "teevrgati_latency_s": 5.224,
+      "teevrgati_latency_s": 0.696,
       "baseline_latency_s": 0.08,
-      "improvement": -20.0,
-      "conflict_detected": false
+      "improvement": 40.0,
+      "conflict_detected": true
     },
     {
       "q_num": 14,
@@ -268,7 +268,7 @@
       ],
       "teevrgati_recall": 0.4,
       "baseline_recall": 0.6,
-      "teevrgati_latency_s": 5.397,
+      "teevrgati_latency_s": 3.418,
       "baseline_latency_s": 0.08,
       "improvement": -20.0,
       "conflict_detected": false
@@ -285,12 +285,12 @@
         "outer race",
         "bearing"
       ],
-      "teevrgati_recall": 0.4,
+      "teevrgati_recall": 1.0,
       "baseline_recall": 0.6,
-      "teevrgati_latency_s": 6.086,
+      "teevrgati_latency_s": 1.656,
       "baseline_latency_s": 0.08,
-      "improvement": -20.0,
-      "conflict_detected": false
+      "improvement": 40.0,
+      "conflict_detected": true
     }
   ]
 }

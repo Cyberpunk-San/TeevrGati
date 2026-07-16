@@ -300,7 +300,7 @@ export default function Home() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, padding: "20px 24px", flex: 1 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 32, padding: "32px 40px", flex: 1 }}>
 
       {/* ── Page header ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -317,16 +317,16 @@ export default function Home() {
       </div>
 
       {/* ── Pipeline strip ── */}
-      <div className="card" style={{ padding: "16px 24px" }}>
+      <div className="card" style={{ padding: "24px 32px" }}>
         <PipelineBar loading={loading} result={result} />
       </div>
 
       {/* ── Main grid ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 16, alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 32, alignItems: "start" }}>
 
         {/* ── LEFT: Query panel ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div className="card" style={{ padding: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <div className="card" style={{ padding: 24 }}>
             <form onSubmit={handleQuery} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <div className="label">Query</div>
               <textarea
@@ -355,7 +355,7 @@ export default function Home() {
           </div>
 
           {/* Quick queries */}
-          <div className="card" style={{ padding: 14 }}>
+          <div className="card" style={{ padding: 24 }}>
             <div className="label" style={{ marginBottom: 10 }}>Quick queries</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {QUICK_QUERIES.map((q) => (
@@ -381,7 +381,7 @@ export default function Home() {
         </div>
 
         {/* ── RIGHT: Results panel ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
           {/* Empty state */}
           {!result && !loading && (
@@ -445,7 +445,7 @@ export default function Home() {
 
               {/* Conflict detected */}
               {result.conflict_detected && !conflictResolution && result.conflict_details && (
-                <div className="conflict-card animate-slide-up" style={{ padding: 18 }}>
+                <div className="conflict-card animate-slide-up" style={{ padding: 24 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: "var(--r-sm)",
@@ -592,7 +592,7 @@ export default function Home() {
 
               {/* Final answer */}
               {(!result.conflict_detected || conflictResolution) && result.final_answer && (
-                <div className="card" style={{ padding: 18 }}>
+                <div className="card" style={{ padding: 24 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                     <div className="label">Synthesized action plan</div>
                     <button
@@ -611,7 +611,7 @@ export default function Home() {
 
               {/* Multi-agent debate */}
               {result.debate && (
-                <div className="card" style={{ padding: 16 }}>
+                <div className="card" style={{ padding: 24 }}>
                   <div className="label" style={{ marginBottom: 12 }}>Multi-agent debate</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {Object.entries(result.debate).map(([agent, text]) => (

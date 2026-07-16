@@ -120,10 +120,10 @@ export default function GraphPage() {
   const nodePositions = getGraphPositions(graphData.nodes);
 
   return (
-    <div className="flex-1 flex flex-col p-6 gap-6">
+    <div className="flex-1 flex flex-col p-10 gap-8">
       
       {/* Page Header */}
-      <div className="flex justify-between items-center bg-[#0d1527] border border-[#1e293b] p-6 rounded-xl shadow-lg">
+      <div className="flex justify-between items-center bg-[#0d1527] border border-[#1e293b] p-8 rounded-2xl shadow-lg">
         <div>
           <h2 className="text-xl font-bold text-white tracking-wide">SELF-HEALING ONTOLOGY KNOWLEDGE GRAPH</h2>
           <p className="text-xs text-[#64748b]">Real-time visual map of documents, sensor metrics, and operator overrides</p>
@@ -138,11 +138,11 @@ export default function GraphPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         
         {/* SVG Graph Area (Left 8 columns) */}
-        <div className="xl:col-span-8 flex flex-col gap-4 bg-[#111827]/80 border border-[#1e293b] rounded-xl p-5 shadow-xl">
-          <div ref={graphContainerRef} className="bg-[#0b0f19] border border-[#1e293b] rounded-lg p-4 flex items-center justify-center min-h-[500px] overflow-auto relative">
+        <div className="xl:col-span-8 flex flex-col gap-6 bg-[#111827]/80 border border-[#1e293b] rounded-2xl p-8 shadow-xl">
+          <div ref={graphContainerRef} className="bg-[#0b0f19] border border-[#1e293b] rounded-xl p-6 flex items-center justify-center min-h-[500px] overflow-auto relative">
             {graphData.nodes.length > 0 ? (
               <svg width="840" height="500" className="max-w-full">
                 <defs>
@@ -261,8 +261,8 @@ export default function GraphPage() {
         </div>
 
         {/* Node Properties Panel (Right 4 columns) */}
-        <div className="xl:col-span-4 flex flex-col gap-6">
-          <div className="bg-[#111827]/80 border border-[#1e293b] rounded-xl p-5 shadow-xl flex-1">
+        <div className="xl:col-span-4 flex flex-col gap-8">
+          <div className="bg-[#111827]/80 border border-[#1e293b] rounded-2xl p-8 shadow-xl flex-1">
             <h3 className="text-xs font-bold text-[#00f5d4] uppercase tracking-wider mb-4 flex items-center gap-2">
               <Cpu className="h-4 w-4 text-[#00f5d4]" />
               Metadata Inspector

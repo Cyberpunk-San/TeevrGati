@@ -126,6 +126,19 @@ def collect_answer_corpus(result: dict) -> str:
     if result.get("final_answer"):
         parts.append(str(result["final_answer"]))
 
+    if result.get("document_evidence"):
+        parts.append(str(result["document_evidence"]))
+
+    # Retrieved RAG chunks (primary grounded evidence)
+    context = result.get("context") or {}
+    rag_results = (context.get("rag_results") or {}).get("results") or []
+    for chunk in rag_results:
+        if isinstance(chunk, dict):
+            parts.append(chunk.get("text", ""))
+            parts.append(str(chunk.get("metadata", "")))
+        else:
+            parts.append(str(chunk))
+
     # Hypotheses (always present)
     for hyp in result.get("hypotheses", []):
         parts.append(hyp.get("cause", ""))

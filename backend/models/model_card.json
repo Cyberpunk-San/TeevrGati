@@ -1,7 +1,8 @@
 {
   "model_name": "TeevrGati Bearing Fault Classifier",
-  "version": "2.0",
-  "training_data": "CWRU Synthetic (12,000 samples) + AI4I 2020 IoT (10,000 samples) + Industrial Pump (20,000 samples)",
+  "version": "3.0",
+  "training_data": "CWRU Bearing Dataset (Kaggle brjapon/cwru-bearing-datasets) \u2014 real .mat waveforms, windowed FFT/envelope features",
+  "data_source": "CWRU Real",
   "n_classes": 4,
   "class_names": [
     "Healthy",
@@ -9,7 +10,7 @@
     "Outer Race Fault",
     "Ball Defect"
   ],
-  "test_accuracy": "100.0%",
+  "test_accuracy": "92.6%",
   "features": [
     "rms_velocity",
     "peak_acceleration",
@@ -23,5 +24,6 @@
     "temperature"
   ],
   "framework": "scikit-learn RandomForestClassifier",
-  "use_case": "Bearing fault detection for rotating equipment at BPCL Mathura Refinery"
+  "use_case": "Bearing fault detection for rotating equipment at BPCL Mathura Refinery",
+  "citation": "Case Western Reserve University Bearing Data Center; Kaggle mirror brjapon/cwru-bearing-datasets"
 }
