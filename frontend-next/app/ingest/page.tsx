@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { BookOpen, RefreshCw, Layers } from "lucide-react";
+import { API_URL, API_KEY } from "../config";
 
 export default function IngestPage() {
   const [uploadStatus, setUploadStatus] = useState("");
@@ -20,11 +21,11 @@ export default function IngestPage() {
       if (typeof reader.result !== "string") return;
       const base64Content = reader.result.split(",")[1];
       try {
-        const res = await fetch("http://localhost:8000/api/ingest", {
+        const res = await fetch(`${API_URL}/api/ingest`, {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
-            "Authorization": "Bearer dev-key"
+            "Authorization": `Bearer ${API_KEY}`
           },
           body: JSON.stringify({
             filename: file.name,
