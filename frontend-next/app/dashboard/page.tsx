@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ShieldAlert, CheckCircle2, AlertTriangle, Play, RefreshCw } from "lucide-react";
+import { API_URL, API_KEY } from "../config";
 
 interface ComplianceReport {
   docName: string;
@@ -63,8 +64,8 @@ export default function Dashboard() {
 
   const fetchLiveMetrics = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/metrics", {
-        headers: { "Authorization": "Bearer dev-key" }
+      const res = await fetch(`${API_URL}/api/metrics`, {
+        headers: { "Authorization": `Bearer ${API_KEY}` }
       });
       if (res.ok) {
         const data = await res.json();
