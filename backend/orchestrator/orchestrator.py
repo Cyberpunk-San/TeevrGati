@@ -739,7 +739,7 @@ class Orchestrator:
                 f"Predictive failure probability: {physics_result.get('predictive_failure_probability', 0):.1%}"
             )
 
-        tacit_matches = self.tacit_agent.search_tacit_knowledge(user_query)
+        tacit_matches = self.tacit_agent.search_tacit_knowledge(user_query, self.brain.kg)
         tacit_context = "\n".join(
             f"- {m.get('note', '')}" for m in tacit_matches[:3]
         ) or "No tacit knowledge entries found for this query."
