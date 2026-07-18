@@ -33,10 +33,11 @@ except ImportError as e:
     print("Please ensure you install all requirements: pip install -r requirements.txt")
     sys.exit(1)
 
-from fastapi import FastAPI, Depends, HTTPException, Security, status
+from fastapi import FastAPI, Depends, HTTPException, Security, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel, Field
 
 # ── JSON sanitiser ─────────────────────────────────────────────────────────────
@@ -92,19 +93,46 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# CORS Policy configuration restricting to the frontend domains
+# CORS Policy: dev origins always included; production origins loaded from env var
+# Set TEEVRGATI_CORS_ORIGINS=https://your-domain.com,https://www.your-domain.com in .env
+_extra_origins = os.getenv("TEEVRGATI_CORS_ORIGINS", "")
 allowed_origins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:3002",
-]
+] + [o.strip() for o in _extra_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
+    expose_headers=["X-Request-ID"],
+    max_age=600,  # preflight cache 10 minutes
 )
+
+# ── Security Headers Middleware ───────────────────────────────────────────────
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Inject hardened HTTP security headers on every response."""
+    async def dispatch(self, request: Request, call_next):
+        response: Response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        # HSTS — only sent over HTTPS; browsers enforce HTTPS for 1 year
+        if request.url.scheme == "https":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'none'; "
+            "script-src 'none'; "
+            "frame-ancestors 'none'"
+        )
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 security = HTTPBearer()
 
@@ -666,7 +694,22 @@ def run(port=None):
         port = int(os.getenv('TEEVRGATI_PORT', '8000'))
     seed_graph()
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    # SSL: set TEEVRGATI_SSL_CERTFILE and TEEVRGATI_SSL_KEYFILE in .env for HTTPS
+    ssl_certfile = os.getenv('TEEVRGATI_SSL_CERTFILE') or None
+    ssl_keyfile  = os.getenv('TEEVRGATI_SSL_KEYFILE')  or None
+    if ssl_certfile and ssl_keyfile:
+        logger.info(f"[Startup] SSL enabled — cert: {ssl_certfile}")
+    else:
+        logger.info("[Startup] Running in HTTP mode (no SSL certs configured)")
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port,
+        ssl_certfile=ssl_certfile,
+        ssl_keyfile=ssl_keyfile,
+        access_log=True,
+        log_level="info",
+    )
 
 if __name__ == '__main__':
     run()
