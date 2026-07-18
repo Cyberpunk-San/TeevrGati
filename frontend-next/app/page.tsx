@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { VoiceInput } from "./components/VoiceInput";
 import { PathVisualization } from "./components/PathVisualization";
+import { API_URL, API_KEY } from "./config";
 
 /* ─────────────────────────────────── Types ─────────────────────────────────── */
 interface AgentLog { timestamp: string; level: string; message: string; }
@@ -240,9 +241,9 @@ export default function Home() {
     localStorage.removeItem("conflict_resolution");
     localStorage.removeItem("resolution_details");
     try {
-      const res = await fetch("http://localhost:8000/api/query", {
+      const res = await fetch(`${API_URL}/api/query`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer dev-key" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
         body: JSON.stringify({ query }),
       });
       if (res.ok) {
@@ -261,9 +262,9 @@ export default function Home() {
     if (!result) return;
     setResolving(true);
     try {
-      const res = await fetch("http://localhost:8000/api/resolve", {
+      const res = await fetch(`${API_URL}/api/resolve`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer dev-key" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
         body: JSON.stringify({ query_result: result, choice, human_feedback: choice === "human" ? humanResponse : null }),
       });
       if (res.ok) {
