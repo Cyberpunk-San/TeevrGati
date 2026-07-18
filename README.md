@@ -267,11 +267,28 @@ HF_TOKEN=your-huggingface-token              # optional
 # Optional fine-tuned model override
 TEEVRGATI_FINE_TUNED_MODEL=ft:gpt-3.5-turbo-xxxx
 
-# API auth (change in production)
+# API auth — CHANGE THIS in production (never leave as dev-key)
 TEEVRGATI_API_KEY=dev-key
 
 # Server config
 TEEVRGATI_PORT=8000
+
+# CORS — comma-separated list of allowed production origins
+# Leave blank for localhost-only (dev mode)
+TEEVRGATI_CORS_ORIGINS=https://your-domain.com,https://www.your-domain.com
+
+# SSL/HTTPS — provide cert paths to enable HTTPS on the FastAPI server
+# In production, prefer a reverse proxy (nginx/caddy) and leave these blank
+TEEVRGATI_SSL_CERTFILE=/path/to/fullchain.pem
+TEEVRGATI_SSL_KEYFILE=/path/to/privkey.pem
+
+# Proactive push alerts via ntfy.sh (install ntfy app and subscribe to this topic)
+NTFY_TOPIC=teevrgati-bpcl-demo
+NTFY_SERVER=https://ntfy.sh
+
+# Frontend (Next.js)
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_KEY=dev-key
 ```
 
 **LLM fallback order:** fine-tuned model → Gemini 2.0 Flash → Gemini 1.5 Flash → OpenAI → Hugging Face → deterministic heuristic fallback
