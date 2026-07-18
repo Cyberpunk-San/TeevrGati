@@ -44,3 +44,7 @@ backend/data/vibration/CWRU_*.npz
 # Env
 .env
 plan.pdf
+
+# IDE / Agent config
+AGENTS.md
+CLAUDE.md
