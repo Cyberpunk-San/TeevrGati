@@ -54,13 +54,28 @@ This is flagged as a **{severity}** priority discrepancy.
             'status': 'verified'
         }
 
-    def search_tacit_knowledge(self, query: str) -> list:
+    def search_tacit_knowledge(self, query: str, kg=None) -> list:
         """
-        Lookup senior engineer overrides based on query keywords.
+        Lookup senior engineer overrides based on query keywords and the Knowledge Graph.
         """
+        results = []
         q = query.lower()
-        if "vibrat" in q or "bearing" in q:
-            return [{'note': 'Bearing inner race operates with higher tolerances (7.2 mm/s limit) during high load cycles.'}]
-        if "torque" in q:
-            return [{'note': 'Torque limit increased to 45Nm for structural stability on flange connectors.'}]
-        return []
+
+        # 1. Search the actual Knowledge Graph for TACIT_RULE nodes
+        if kg and hasattr(kg, 'graph'):
+            for node, data in kg.graph.nodes(data=True):
+                if data.get('type') == 'TACIT_RULE':
+                    text = data.get('text', '')
+                    # Check if query keywords match rule text
+                    if any(word in text.lower() for word in q.split() if len(word) > 3):
+                        results.append({'note': text, 'source': 'Knowledge Graph'})
+
+        # 2. Heuristics fallback for standard demo queries if no dynamic match found
+        if not results:
+            if "vibrat" in q or "bearing" in q:
+                results.append({'note': 'Bearing inner race operates with higher tolerances (7.2 mm/s limit) during high load cycles.'})
+            if "torque" in q:
+                results.append({'note': 'Torque limit increased to 45Nm for structural stability on flange connectors.'})
+                
+        return results
+
