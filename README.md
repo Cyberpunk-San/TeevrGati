@@ -243,8 +243,8 @@ All endpoints require `Authorization: Bearer <key>` (default dev key: `dev-key`)
 ### 1. Clone & Install Backend
 
 ```bash
-git clone https://github.com/Cyberpunk-San/AI-Industrial-Mastermind.git
-cd AI-Industrial-Mastermind
+git clone https://github.com/Cyberpunk-San/TeevrGati.git
+cd TeevrGati
 pip install -r requirements.txt
 ```
 
