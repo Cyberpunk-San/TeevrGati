@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { gsap } from "gsap";
 import { RefreshCw, Cpu } from "lucide-react";
+import { API_URL, API_KEY } from "../config";
 
 interface GraphNode {
   id: string;
@@ -123,8 +124,8 @@ export default function GraphPage() {
   const fetchGraph = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/graph", {
-        headers: { Authorization: "Bearer dev-key" },
+      const res = await fetch(`${API_URL}/api/graph`, {
+        headers: { Authorization: `Bearer ${API_KEY}` },
       });
       if (res.ok) {
         const data = await res.json();
