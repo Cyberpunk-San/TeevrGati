@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🏭 TeevrGati — AI Industrial Mind
+#  TeevrGati — AI Industrial Mind
 
 ### *तीव्र गति · High Velocity · Closed-Loop Industrial Intelligence*
 
