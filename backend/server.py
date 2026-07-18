@@ -3,6 +3,9 @@ import os
 import sys
 import logging
 import base64
+import uuid
+import re
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 
 # Initialize structured logging
@@ -37,8 +40,9 @@ from fastapi import FastAPI, Depends, HTTPException, Security, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
+from fastapi.exception_handlers import http_exception_handler
 from starlette.middleware.base import BaseHTTPMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 # ── JSON sanitiser ─────────────────────────────────────────────────────────────
 # FastAPI/jsonable_encoder cannot handle numpy scalars (numpy.bool_, numpy.int64,
@@ -64,33 +68,85 @@ def sanitise_for_json(obj):
         return [sanitise_for_json(v) for v in obj]
     return obj
 
+# ── RFC 7807 Problem Details helper ─────────────────────────────────────────
+def problem(status_code: int, title: str, detail: str, request: Request = None) -> JSONResponse:
+    """Return an RFC 7807 application/problem+json error response."""
+    body = {
+        "type": f"https://teevrgati.io/errors/{title.lower().replace(' ', '-')}",
+        "title": title,
+        "status": status_code,
+        "detail": detail,
+        "instance": str(request.url) if request else "/",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    return JSONResponse(
+        status_code=status_code,
+        content=body,
+        media_type="application/problem+json",
+    )
+
 # ----------------------------------------------------
 # Pydantic Schemas for Request Validation
 # ----------------------------------------------------
 class QueryRequest(BaseModel):
-    query: str = Field(..., description="The query to search the Knowledge Graph/RAG system.")
-    asset_id: Optional[str] = Field(None, description="Optional target equipment asset tag.")
+    query: str = Field(..., min_length=3, max_length=2000, description="The query to search the Knowledge Graph/RAG system.")
+    asset_id: Optional[str] = Field(None, max_length=20, description="Optional target equipment asset tag.")
 
 class ResolveRequest(BaseModel):
     query_result: Dict[str, Any] = Field(..., description="The query result dict containing conflict details.")
-    choice: str = Field(..., description="The chosen resolution ('physics', 'documents', or custom).")
-    human_feedback: Optional[str] = Field(None, description="Optional feedback notes from a senior engineer.")
+    choice: str = Field(..., description="The chosen resolution ('physics', 'documents', or 'human').")
+    human_feedback: Optional[str] = Field(None, max_length=4000, description="Optional feedback notes from a senior engineer.")
+
+    @field_validator("choice")
+    @classmethod
+    def validate_choice(cls, v: str) -> str:
+        allowed = {"physics", "documents", "human"}
+        if v not in allowed:
+            raise ValueError(f"choice must be one of {allowed}")
+        return v
 
 class IngestRequest(BaseModel):
-    filename: str = Field("uploaded_manual.pdf", description="The original filename of the ingested file.")
-    content: str = Field(..., description="Base64 encoded string representing the file content.")
+    filename: str = Field(..., min_length=1, max_length=255, description="The original filename of the ingested file.")
+    content: str = Field(..., description="Base64 encoded string representing the file content (max 20 MB).")
+
+    @field_validator("filename")
+    @classmethod
+    def sanitize_filename(cls, v: str) -> str:
+        # Strip path traversal and keep only safe characters
+        v = re.sub(r'[\\/]', '', v)               # no slashes
+        v = re.sub(r'[^\w.\-]', '_', v)           # only word chars, dots, hyphens
+        if not re.search(r'\.(pdf|png|jpg|jpeg|tiff|bmp)$', v, re.I):
+            raise ValueError("Only PDF and image files are accepted")
+        return v
+
+    @field_validator("content")
+    @classmethod
+    def check_size(cls, v: str) -> str:
+        # base64 overhead is ~4/3; 20 MB raw ≈ 27 MB base64
+        if len(v) > 27 * 1024 * 1024:
+            raise ValueError("File too large — maximum upload size is 20 MB")
+        return v
 
 # ----------------------------------------------------
 # FastAPI App Setup & Middleware
 # ----------------------------------------------------
 app = FastAPI(
-    title="TeevrGati — BPCL Mathura Refinery Intelligence API",
+    title="TeevrGati — AI Industrial Mind API",
     description=(
-        "Cyber-physical intelligence platform for rotating equipment maintenance at "
-        "BPCL Mathura Refinery. Multi-agent RAG + Knowledge Graph + Vibration Physics "
-        "with self-healing graph and real-time push alerts."
+        "Cyber-physical intelligence platform for rotating equipment maintenance. "
+        "Multi-agent RAG + Knowledge Graph + Vibration Physics with self-healing graph."
     ),
-    version="2.0.0"
+    version="2.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+    openapi_tags=[
+        {"name": "diagnostics", "description": "Query and conflict resolution"},
+        {"name": "ingestion",   "description": "Document ingestion"},
+        {"name": "graph",       "description": "Knowledge graph operations"},
+        {"name": "monitoring",  "description": "Metrics, compliance, and briefings"},
+        {"name": "health",      "description": "Health and liveness checks"},
+    ],
 )
 
 # CORS Policy: dev origins always included; production origins loaded from env var
@@ -134,15 +190,28 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(SecurityHeadersMiddleware)
 
-security = HTTPBearer()
+# ── Request-ID Middleware ─────────────────────────────────────────────────────
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    """Attach a unique X-Request-ID to every request and echo it in the response."""
+    async def dispatch(self, request: Request, call_next):
+        request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        request.state.request_id = request_id
+        response: Response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
 
-def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Validates the Authorization Bearer Token."""
+app.add_middleware(RequestIDMiddleware)
+
+security = HTTPBearer(auto_error=False)
+
+def verify_token(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):
+    """Validates the Authorization Bearer Token (RFC 6750)."""
     api_key = os.getenv('TEEVRGATI_API_KEY', 'dev-key')
-    if credentials.credentials != api_key:
+    if credentials is None or credentials.credentials != api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized: Invalid or missing API key Bearer token."
+            detail="Invalid or missing Bearer token.",
+            headers={"WWW-Authenticate": "Bearer"},  # RFC 6750 §3
         )
 
 # ── Orchestrator singleton ────────────────────────────────────────────────────
@@ -163,10 +232,29 @@ async def startup_event():
     get_orchestrator()
     logger.info("[Startup] Orchestrator ready.")
 
+# ── Health / liveness endpoint (no auth required) ────────────────────────────
+@app.get("/health", tags=["health"], summary="Liveness probe")
+def health_check():
+    """Simple liveness probe — returns 200 OK when the server is up."""
+    return {
+        "status": "ok",
+        "version": app.version,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+@app.get("/api/health", tags=["health"], summary="API health probe")
+def api_health():
+    """Readiness probe — confirms orchestrator singleton is alive."""
+    try:
+        get_orchestrator()
+        return {"status": "ready", "timestamp": datetime.now(timezone.utc).isoformat()}
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Orchestrator not ready: {e}")
+
 # ----------------------------------------------------
 # API Endpoints
 # ----------------------------------------------------
-@app.get("/api/graph", dependencies=[Depends(verify_token)])
+@app.get("/api/graph", dependencies=[Depends(verify_token)], tags=["graph"], summary="Get full knowledge graph")
 def get_graph():
     """Retrieve the entire serialized state of the Knowledge Graph."""
     try:
@@ -175,9 +263,9 @@ def get_graph():
         return json.loads(graph_json)
     except Exception as e:
         logger.error(f"Error serving graph: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to load knowledge graph: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to load knowledge graph: {str(e)}")
 
-@app.get("/api/metrics", dependencies=[Depends(verify_token)])
+@app.get("/api/metrics", dependencies=[Depends(verify_token)], tags=["monitoring"], summary="Live compliance and accuracy metrics")
 def get_metrics():
     """Serve dynamically calculated health, accuracy, and safety compliance benchmarks."""
     try:
@@ -370,12 +458,11 @@ def get_metrics():
             detail="Metrics unavailable"
         )
 
-@app.post("/api/query", dependencies=[Depends(verify_token)])
+@app.post("/api/query", dependencies=[Depends(verify_token)], tags=["diagnostics"], summary="Run multi-agent diagnostic query")
 def run_query(request_payload: QueryRequest):
-    """Executes a functional query against the RAG search and multi-hop engine."""
+    """Executes a multi-agent diagnostic query: Historian → Simulator → Conflict Detector → Synthesis."""
     try:
         orchestrator = get_orchestrator()
-        # Seed dynamic PDF manual automatically if it has not been ingested yet
         sample_pdf_path = "backend/data/sample/pump_manual.pdf"
         if not os.path.exists(sample_pdf_path):
             from backend.test_orchestrator import create_sample_pdf
@@ -384,17 +471,16 @@ def run_query(request_payload: QueryRequest):
             parse_result = parser.parse(sample_pdf_path)
             if parse_result.get('success'):
                 orchestrator.brain.ingest_document(parse_result)
-                
         result = orchestrator.process_query(request_payload.query, asset_id=request_payload.asset_id)
         return JSONResponse(content=sanitise_for_json(result))
     except Exception as e:
         logger.error(f"Error processing query: {e}")
         raise HTTPException(
-            status_code=500,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Query orchestration failure: {str(e)}"
         )
 
-@app.post("/api/resolve", dependencies=[Depends(verify_token)])
+@app.post("/api/resolve", dependencies=[Depends(verify_token)], tags=["diagnostics"], summary="Apply conflict resolution and self-heal graph")
 def resolve_conflict(request_payload: ResolveRequest):
     """Reconciles discrepancies between documentation and live sensor telemetry."""
     try:
@@ -408,13 +494,17 @@ def resolve_conflict(request_payload: ResolveRequest):
     except Exception as e:
         logger.error(f"Error executing conflict resolution: {e}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Conflict resolution database write failed: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Conflict resolution failed: {str(e)}"
         )
 
-@app.post("/api/ingest", dependencies=[Depends(verify_token)])
+@app.post("/api/ingest",
+          dependencies=[Depends(verify_token)],
+          tags=["ingestion"],
+          summary="Ingest a new document into the knowledge base",
+          status_code=status.HTTP_201_CREATED)
 def ingest_document(request_payload: IngestRequest):
-    """Saves, parses, and indexes a raw base64-encoded PDF or image into the brain."""
+    """Saves, parses, and indexes a base64-encoded PDF or image. Returns 201 Created on success."""
     try:
         raw_dir = "backend/data/raw"
         os.makedirs(raw_dir, exist_ok=True)
