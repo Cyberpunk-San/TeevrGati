@@ -1,8 +1,8 @@
 <div align="center">
 
-# 🏭 AI Industrial Mind
+# 🏭 TeevrGati — AI Industrial Mind
 
-### *Intelligent Operations for the Industrial World*
+### *तीव्र गति · High Velocity · Closed-Loop Industrial Intelligence*
 
 **A closed-loop, multi-agent industrial intelligence platform that unifies SOPs, live sensor physics, and operator tacit knowledge — and self-heals when they contradict each other.**
 
