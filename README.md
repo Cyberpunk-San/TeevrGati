@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🏭 TeevrGati — AI Industrial Mastermind
+#  TeevrGati — AI Industrial Mastermind
 
 ### *तीव्र गति · High Velocity*
 
