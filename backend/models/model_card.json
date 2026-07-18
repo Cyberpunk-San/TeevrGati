@@ -10,7 +10,7 @@
     "Outer Race Fault",
     "Ball Defect"
   ],
-  "test_accuracy": "92.6%",
+  "test_accuracy": "92.4%",
   "features": [
     "rms_velocity",
     "peak_acceleration",
