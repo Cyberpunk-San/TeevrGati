@@ -1,0 +1,1262 @@
+{
+  "nodes": [
+    {
+      "id": "EQ-P-201",
+      "label": "EQ-P-201",
+      "type": "Equipment",
+      "metadata": {
+        "label": "Pump P-201",
+        "status": "active",
+        "manufacturer": "Sulzer",
+        "rated_rpm": 1480
+      }
+    },
+    {
+      "id": "EQ-C-101",
+      "label": "EQ-C-101",
+      "type": "Equipment",
+      "metadata": {
+        "label": "Compressor C-101",
+        "status": "active",
+        "manufacturer": "Ingersoll Rand",
+        "rated_rpm": 2950
+      }
+    },
+    {
+      "id": "EQ-T-102",
+      "label": "EQ-T-102",
+      "type": "Equipment",
+      "metadata": {
+        "label": "Turbine T-102",
+        "status": "active",
+        "manufacturer": "Siemens",
+        "rated_rpm": 3000
+      }
+    },
+    {
+      "id": "COMP-bearing-P-201",
+      "label": "COMP-bearing-P-201",
+      "type": "Component",
+      "metadata": {
+        "label": "Bearing SKF-6306",
+        "status": "active"
+      }
+    },
+    {
+      "id": "COMP-seal-P-201",
+      "label": "COMP-seal-P-201",
+      "type": "Component",
+      "metadata": {
+        "label": "Mechanical Seal MS-22",
+        "status": "active"
+      }
+    },
+    {
+      "id": "COMP-coupling-C-101",
+      "label": "COMP-coupling-C-101",
+      "type": "Component",
+      "metadata": {
+        "label": "Flexible Coupling CM-101",
+        "status": "active"
+      }
+    },
+    {
+      "id": "DOC-pump-sop.pdf",
+      "label": "DOC-pump-sop.pdf",
+      "type": "Procedure",
+      "metadata": {
+        "label": "SOP_Pump_P-201_Limits",
+        "status": "active",
+        "issue_year": 2023
+      }
+    },
+    {
+      "id": "DOC-compressor-sop.pdf",
+      "label": "DOC-compressor-sop.pdf",
+      "type": "Procedure",
+      "metadata": {
+        "label": "SOP_Compressor_LOTO",
+        "status": "active",
+        "issue_year": 2022
+      }
+    },
+    {
+      "id": "DOC-turbine-sop.pdf",
+      "label": "DOC-turbine-sop.pdf",
+      "type": "Procedure",
+      "metadata": {
+        "label": "SOP_Turbine_Overhaul",
+        "status": "active",
+        "issue_year": 2021
+      }
+    },
+    {
+      "id": "INC-leak-2023",
+      "label": "INC-leak-2023",
+      "type": "Incident",
+      "metadata": {
+        "label": "Incident: Seal Leak P-201",
+        "status": "closed",
+        "date": "2023-08-14"
+      }
+    },
+    {
+      "id": "INC-vibration-2024",
+      "label": "INC-vibration-2024",
+      "type": "Incident",
+      "metadata": {
+        "label": "Incident: High Vibration P-201",
+        "status": "closed",
+        "date": "2024-02-10"
+      }
+    },
+    {
+      "id": "TACIT-bearing-limit",
+      "label": "TACIT-bearing-limit",
+      "type": "TacitRule",
+      "metadata": {
+        "label": "Tacit: Bearing Peak Limit (7.2 mm/s)",
+        "status": "verified",
+        "author": "Senior Operator Roy"
+      }
+    },
+    {
+      "id": "PERSON-Roy",
+      "label": "PERSON-Roy",
+      "type": "Person",
+      "metadata": {
+        "label": "Senior Operator Roy",
+        "status": "retiring_soon",
+        "retirement_date": "2026-12-31"
+      }
+    },
+    {
+      "id": "REG-OISD-105",
+      "label": "OISD 105",
+      "type": "REGULATION",
+      "metadata": {
+        "label": "OISD-105 LOTO Standard",
+        "status": "active",
+        "version": "2023",
+        "reference": "OISD 105",
+        "confidence": 0.95
+      }
+    },
+    {
+      "id": "WO-2024-001",
+      "label": "WO-2024-001",
+      "type": "WorkOrder",
+      "metadata": {
+        "label": "WO-2024-001: Bearing Replacement",
+        "status": "open",
+        "priority": "Emergency",
+        "labor_estimate": 4
+      }
+    },
+    {
+      "id": "DEPT-MAINTENANCE",
+      "label": "DEPT-MAINTENANCE",
+      "type": "Department",
+      "metadata": {
+        "label": "Maintenance Department",
+        "status": "active"
+      }
+    },
+    {
+      "id": "doc_20260716_234957",
+      "label": "doc_20260716_234957",
+      "type": "DOCUMENT",
+      "metadata": {
+        "metadata": {
+          "format": "PDF 1.7",
+          "title": "",
+          "author": "",
+          "subject": "",
+          "keywords": "",
+          "creator": "",
+          "producer": "",
+          "creationDate": "",
+          "modDate": "",
+          "trapped": "",
+          "encryption": null
+        },
+        "pages": 1,
+        "timestamp": "2026-07-16T23:49:57.813020"
+      }
+    },
+    {
+      "id": "EQ-SOP-2023",
+      "label": "SOP-2023",
+      "type": "EQUIPMENT",
+      "metadata": {
+        "tag": "SOP-2023",
+        "confidence": 0.9,
+        "source": "regex"
+      }
+    },
+    {
+      "id": "EQ-OISD 105",
+      "label": "OISD 105",
+      "type": "EQUIPMENT",
+      "metadata": {
+        "tag": "OISD 105",
+        "confidence": 0.9,
+        "source": "regex"
+      }
+    },
+    {
+      "id": "EQ-INDUSTRIAL EQUIPMENT DATASHEET",
+      "label": "INDUSTRIAL EQUIPMENT DATASHEET",
+      "type": "EQUIPMENT",
+      "metadata": {
+        "tag": "INDUSTRIAL EQUIPMENT DATASHEET",
+        "confidence": 0.7,
+        "source": "spacy"
+      }
+    },
+    {
+      "id": "EQ-Rao\nDepartment",
+      "label": "Rao\nDepartment",
+      "type": "EQUIPMENT",
+      "metadata": {
+        "tag": "Rao\nDepartment",
+        "confidence": 0.7,
+        "source": "spacy"
+      }
+    },
+    {
+      "id": "REG-Factory-Act",
+      "label": "Factory Act",
+      "type": "REGULATION",
+      "metadata": {
+        "reference": "Factory Act",
+        "confidence": 0.95
+      }
+    },
+    {
+      "id": "REG-Section-4(12)",
+      "label": "Section 4(12)",
+      "type": "REGULATION",
+      "metadata": {
+        "reference": "Section 4(12)",
+        "confidence": 0.95
+      }
+    },
+    {
+      "id": "PERSON-Document-Ref",
+      "label": "Document Ref",
+      "type": "PERSON",
+      "metadata": {
+        "name": "Document Ref",
+        "confidence": 0.8
+      }
+    },
+    {
+      "id": "PERSON-Engineer-Rao",
+      "label": "Engineer Rao",
+      "type": "PERSON",
+      "metadata": {
+        "name": "Engineer Rao",
+        "confidence": 0.8
+      }
+    },
+    {
+      "id": "PERSON-Equipment-Specifications",
+      "label": "Equipment Specifications",
+      "type": "PERSON",
+      "metadata": {
+        "name": "Equipment Specifications",
+        "confidence": 0.8
+      }
+    },
+    {
+      "id": "PERSON-Tag-Name",
+      "label": "Tag Name",
+      "type": "PERSON",
+      "metadata": {
+        "name": "Tag Name",
+        "confidence": 0.8
+      }
+    },
+    {
+      "id": "PERSON-Alternate-Designator",
+      "label": "Alternate Designator",
+      "type": "PERSON",
+      "metadata": {
+        "name": "Alternate Designator",
+        "confidence": 0.8
+      }
+    },
+    {
+      "id": "PERSON-Operating-Limit",
+      "label": "Operating Limit",
+      "type": "PERSON",
+      "metadata": {
+        "name": "Operating Limit",
+        "confidence": 0.8
+      }
+    },
+    {
+      "id": "PERSON-Mounting-Bolt",
+      "label": "Mounting Bolt",
+      "type": "PERSON",
+      "metadata": {
+        "name": "Mounting Bolt",
+        "confidence": 0.8
+      }
+    },
+    {
+      "id": "PERSON-Safety-Procedures",
+      "label": "Safety Procedures",
+      "type": "PERSON",
+      "metadata": {
+        "name": "Safety Procedures",
+        "confidence": 0.8
+      }
+    },
+    {
+      "id": "PERSON-Factory-Act",
+      "label": "Factory Act",
+      "type": "PERSON",
+      "metadata": {
+        "name": "Factory Act",
+        "confidence": 0.8
+      }
+    },
+    {
+      "id": "PERSON-Incident-Logs",
+      "label": "Incident Logs",
+      "type": "PERSON",
+      "metadata": {
+        "name": "Incident Logs",
+        "confidence": 0.8
+      }
+    },
+    {
+      "id": "PERSON-J.-Doe",
+      "label": "J. Doe",
+      "type": "PERSON",
+      "metadata": {
+        "name": "J. Doe",
+        "confidence": 0.8
+      }
+    },
+    {
+      "id": "PERSON-Sr.-Engineer-Rao",
+      "label": "Sr. Engineer Rao",
+      "type": "PERSON",
+      "metadata": {
+        "name": "Sr. Engineer Rao",
+        "confidence": 0.8
+      }
+    },
+    {
+      "id": "PERSON-Pump-P-201",
+      "label": "Pump P-201",
+      "type": "PERSON",
+      "metadata": {
+        "name": "Pump P-201",
+        "confidence": 0.9
+      }
+    },
+    {
+      "id": "doc_20260717_003501",
+      "label": "doc_20260717_003501",
+      "type": "DOCUMENT",
+      "metadata": {
+        "metadata": {
+          "format": "PDF 1.7",
+          "title": "",
+          "author": "",
+          "subject": "",
+          "keywords": "",
+          "creator": "",
+          "producer": "",
+          "creationDate": "",
+          "modDate": "",
+          "trapped": "",
+          "encryption": null
+        },
+        "pages": 1,
+        "timestamp": "2026-07-17T00:35:08.963534"
+      }
+    },
+    {
+      "id": "doc_20260717_003524",
+      "label": "doc_20260717_003524",
+      "type": "DOCUMENT",
+      "metadata": {
+        "metadata": {
+          "format": "PDF 1.7",
+          "title": "",
+          "author": "",
+          "subject": "",
+          "keywords": "",
+          "creator": "",
+          "producer": "",
+          "creationDate": "",
+          "modDate": "",
+          "trapped": "",
+          "encryption": null
+        },
+        "pages": 1,
+        "timestamp": "2026-07-17T00:35:24.375674"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "EQ-P-201",
+      "to": "COMP-bearing-P-201",
+      "label": "HAS_COMPONENT",
+      "metadata": {
+        "relation": "HAS_COMPONENT",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "EQ-P-201",
+      "to": "COMP-seal-P-201",
+      "label": "HAS_COMPONENT",
+      "metadata": {
+        "relation": "HAS_COMPONENT",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "EQ-P-201",
+      "to": "INC-leak-2023",
+      "label": "HAS_INCIDENT",
+      "metadata": {
+        "relation": "HAS_INCIDENT",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "EQ-P-201",
+      "to": "INC-vibration-2024",
+      "label": "HAS_INCIDENT",
+      "metadata": {
+        "relation": "HAS_INCIDENT",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "EQ-C-101",
+      "to": "COMP-coupling-C-101",
+      "label": "HAS_COMPONENT",
+      "metadata": {
+        "relation": "HAS_COMPONENT",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "DOC-pump-sop.pdf",
+      "to": "EQ-P-201",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "DOC-pump-sop.pdf",
+      "to": "TACIT-bearing-limit",
+      "label": "REPLACED_BY",
+      "metadata": {
+        "relation": "REPLACED_BY",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "DOC-pump-sop.pdf",
+      "to": "REG-OISD-105",
+      "label": "CITES_CLAUSE",
+      "metadata": {
+        "relation": "CITES_CLAUSE",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "DOC-compressor-sop.pdf",
+      "to": "EQ-C-101",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "DOC-turbine-sop.pdf",
+      "to": "EQ-T-102",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "INC-leak-2023",
+      "to": "COMP-seal-P-201",
+      "label": "AFFECTS",
+      "metadata": {
+        "relation": "AFFECTS",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "INC-vibration-2024",
+      "to": "COMP-bearing-P-201",
+      "label": "AFFECTS",
+      "metadata": {
+        "relation": "AFFECTS",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "TACIT-bearing-limit",
+      "to": "EQ-P-201",
+      "label": "GOVERNS",
+      "metadata": {
+        "relation": "GOVERNS",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "TACIT-bearing-limit",
+      "to": "COMP-bearing-P-201",
+      "label": "APPLIES_TO",
+      "metadata": {
+        "relation": "APPLIES_TO",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "PERSON-Roy",
+      "to": "TACIT-bearing-limit",
+      "label": "KNOWS_TACIT_RULE",
+      "metadata": {
+        "relation": "KNOWS_TACIT_RULE",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "PERSON-Roy",
+      "to": "DEPT-MAINTENANCE",
+      "label": "BELONGS_TO",
+      "metadata": {
+        "relation": "BELONGS_TO",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "WO-2024-001",
+      "to": "INC-vibration-2024",
+      "label": "ADDRESSES",
+      "metadata": {
+        "relation": "ADDRESSES",
+        "timestamp": null
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "EQ-SOP-2023",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": "2026-07-16T23:49:57.991618"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "EQ-OISD 105",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": "2026-07-16T23:49:57.991654"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "EQ-INDUSTRIAL EQUIPMENT DATASHEET",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": "2026-07-16T23:49:57.991665"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "EQ-Rao\nDepartment",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": "2026-07-16T23:49:57.991673"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "REG-OISD-105",
+      "label": "CITES",
+      "metadata": {
+        "relation": "CITES",
+        "timestamp": "2026-07-16T23:49:57.991691"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "REG-Factory-Act",
+      "label": "CITES",
+      "metadata": {
+        "relation": "CITES",
+        "timestamp": "2026-07-16T23:49:57.991706"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "REG-Section-4(12)",
+      "label": "CITES",
+      "metadata": {
+        "relation": "CITES",
+        "timestamp": "2026-07-16T23:49:57.991715"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "PERSON-Document-Ref",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-16T23:49:57.991726"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "PERSON-Engineer-Rao",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-16T23:49:57.991736"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "PERSON-Equipment-Specifications",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-16T23:49:57.991745"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "PERSON-Tag-Name",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-16T23:49:57.991755"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "PERSON-Alternate-Designator",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-16T23:49:57.991764"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "PERSON-Operating-Limit",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-16T23:49:57.991772"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "PERSON-Mounting-Bolt",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-16T23:49:57.991780"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "PERSON-Safety-Procedures",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-16T23:49:57.991787"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "PERSON-Factory-Act",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-16T23:49:57.991794"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "PERSON-Incident-Logs",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-16T23:49:57.991801"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "PERSON-J.-Doe",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-16T23:49:57.991808"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "PERSON-Sr.-Engineer-Rao",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-16T23:49:57.991814"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "PERSON-Pump-P-201",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-16T23:49:57.991822"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "doc_20260717_003501",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-SOP-2023",
+        "timestamp": "2026-07-17T00:35:09.021718"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "doc_20260717_003501",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-OISD 105",
+        "timestamp": "2026-07-17T00:35:09.021742"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "doc_20260717_003501",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-INDUSTRIAL EQUIPMENT DATASHEET",
+        "timestamp": "2026-07-17T00:35:09.021759"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "doc_20260717_003501",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-Rao\nDepartment",
+        "timestamp": "2026-07-17T00:35:09.021771"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "doc_20260717_003501",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-SOP-2023",
+        "timestamp": "2026-07-17T00:35:24.413037"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "doc_20260717_003501",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-OISD 105",
+        "timestamp": "2026-07-17T00:35:24.413051"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "doc_20260717_003501",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-INDUSTRIAL EQUIPMENT DATASHEET",
+        "timestamp": "2026-07-17T00:35:24.413061"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "doc_20260717_003501",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-Rao\nDepartment",
+        "timestamp": "2026-07-17T00:35:24.413070"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "doc_20260717_003524",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-SOP-2023",
+        "timestamp": "2026-07-17T00:35:24.413040"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "doc_20260717_003524",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-OISD 105",
+        "timestamp": "2026-07-17T00:35:24.413053"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "doc_20260717_003524",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-INDUSTRIAL EQUIPMENT DATASHEET",
+        "timestamp": "2026-07-17T00:35:24.413063"
+      }
+    },
+    {
+      "from": "doc_20260716_234957",
+      "to": "doc_20260717_003524",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-Rao\nDepartment",
+        "timestamp": "2026-07-17T00:35:24.413071"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "EQ-SOP-2023",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": "2026-07-17T00:35:09.021468"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "EQ-OISD 105",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": "2026-07-17T00:35:09.021502"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "EQ-INDUSTRIAL EQUIPMENT DATASHEET",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": "2026-07-17T00:35:09.021512"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "EQ-Rao\nDepartment",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": "2026-07-17T00:35:09.021518"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "REG-OISD-105",
+      "label": "CITES",
+      "metadata": {
+        "relation": "CITES",
+        "timestamp": "2026-07-17T00:35:09.021529"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "REG-Factory-Act",
+      "label": "CITES",
+      "metadata": {
+        "relation": "CITES",
+        "timestamp": "2026-07-17T00:35:09.021536"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "REG-Section-4(12)",
+      "label": "CITES",
+      "metadata": {
+        "relation": "CITES",
+        "timestamp": "2026-07-17T00:35:09.021543"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "PERSON-Document-Ref",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:09.021551"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "PERSON-Engineer-Rao",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:09.021559"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "PERSON-Equipment-Specifications",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:09.021565"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "PERSON-Tag-Name",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:09.021571"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "PERSON-Alternate-Designator",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:09.021577"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "PERSON-Operating-Limit",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:09.021582"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "PERSON-Mounting-Bolt",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:09.021587"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "PERSON-Safety-Procedures",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:09.021592"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "PERSON-Factory-Act",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:09.021597"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "PERSON-Incident-Logs",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:09.021602"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "PERSON-J.-Doe",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:09.021607"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "PERSON-Sr.-Engineer-Rao",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:09.021612"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "PERSON-Pump-P-201",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:09.021618"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "doc_20260717_003524",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-SOP-2023",
+        "timestamp": "2026-07-17T00:35:24.413044"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "doc_20260717_003524",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-OISD 105",
+        "timestamp": "2026-07-17T00:35:24.413055"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "doc_20260717_003524",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-INDUSTRIAL EQUIPMENT DATASHEET",
+        "timestamp": "2026-07-17T00:35:24.413064"
+      }
+    },
+    {
+      "from": "doc_20260717_003501",
+      "to": "doc_20260717_003524",
+      "label": "SHARES_EQUIPMENT",
+      "metadata": {
+        "relation": "SHARES_EQUIPMENT",
+        "equipment": "EQ-Rao\nDepartment",
+        "timestamp": "2026-07-17T00:35:24.413073"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "EQ-SOP-2023",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": "2026-07-17T00:35:24.412918"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "EQ-OISD 105",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": "2026-07-17T00:35:24.412934"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "EQ-INDUSTRIAL EQUIPMENT DATASHEET",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": "2026-07-17T00:35:24.412938"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "EQ-Rao\nDepartment",
+      "label": "MENTIONS",
+      "metadata": {
+        "relation": "MENTIONS",
+        "timestamp": "2026-07-17T00:35:24.412941"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "REG-OISD-105",
+      "label": "CITES",
+      "metadata": {
+        "relation": "CITES",
+        "timestamp": "2026-07-17T00:35:24.412947"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "REG-Factory-Act",
+      "label": "CITES",
+      "metadata": {
+        "relation": "CITES",
+        "timestamp": "2026-07-17T00:35:24.412950"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "REG-Section-4(12)",
+      "label": "CITES",
+      "metadata": {
+        "relation": "CITES",
+        "timestamp": "2026-07-17T00:35:24.412954"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "PERSON-Document-Ref",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:24.412958"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "PERSON-Engineer-Rao",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:24.412960"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "PERSON-Equipment-Specifications",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:24.412963"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "PERSON-Tag-Name",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:24.412965"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "PERSON-Alternate-Designator",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:24.412969"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "PERSON-Operating-Limit",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:24.412971"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "PERSON-Mounting-Bolt",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:24.412974"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "PERSON-Safety-Procedures",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:24.412977"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "PERSON-Factory-Act",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:24.412979"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "PERSON-Incident-Logs",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:24.412982"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "PERSON-J.-Doe",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:24.412985"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "PERSON-Sr.-Engineer-Rao",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:24.412988"
+      }
+    },
+    {
+      "from": "doc_20260717_003524",
+      "to": "PERSON-Pump-P-201",
+      "label": "AUTHORED_BY",
+      "metadata": {
+        "relation": "AUTHORED_BY",
+        "timestamp": "2026-07-17T00:35:24.412990"
+      }
+    }
+  ]
+}
