@@ -23,9 +23,12 @@ next-env.d.ts
 Thumbs.db
 
 # Project databases / models / temporary files
-backend/data/chroma_db/
+**/chroma_db/
 backend/data/raw/*
 backend/models/*.pkl
+*.bin
+*.sqlite3
+*.db
 
 # Large CWRU raw waveforms (download via Kaggle; features CSV is kept)
 backend/data/vibration/cwru_raw/
