@@ -46,6 +46,8 @@ interface ResolutionDetails {
   winner_id: string;
   structured_rule?: { type: string; confidence: number; rule_text: string; };
   agent_log?: AgentLog[];
+  work_order?: Record<string, unknown>;
+  proactive_alerts?: unknown[];
 }
 
 /* ─────────────────────────────── Agent Pipeline ───────────────────────────── */
@@ -275,6 +277,12 @@ export default function Home() {
       const updatedResult = { ...result };
       if (updatedResult.agent_log && data.agent_log)
         updatedResult.agent_log = [...updatedResult.agent_log, ...data.agent_log];
+      if (data.work_order) {
+        updatedResult.work_order = data.work_order;
+      }
+      if (data.proactive_alerts) {
+        updatedResult.proactive_alerts = data.proactive_alerts;
+      }
       setResult(updatedResult);
       localStorage.setItem("query_result", JSON.stringify(updatedResult));
     } catch (err) {

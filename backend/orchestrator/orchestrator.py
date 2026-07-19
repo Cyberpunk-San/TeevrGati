@@ -728,6 +728,25 @@ class Orchestrator:
         for node in healed_nodes:
             self.log(f"🩹 Graph Self-Healed: Node '{node}' status updated to OUTDATED and REPLACED_BY link added.")
             
+        # Guardian Phase: Generate work order now that conflict is resolved
+        work_order = None
+        proactive_alerts = []
+        physics_res = query_result.get('physics_result')
+        
+        # Only generate work order if there's actually a fault (physics severity is high)
+        if physics_res and physics_res.get('severity') in ['Critical', 'Alert', 'High']:
+            self.log("🚨 Phase 6: Guardian - Generating work order and alerts post-resolution...")
+            # For context, use the structured rule if human, or the reason if system
+            context = f"Resolution: {choice.upper()} - {reason}"
+            work_order = self.work_order_gen.create_work_order(
+                asset_id=asset_id,
+                fault_type=physics_res.get('fault_type', 'Unknown'),
+                severity=physics_res.get('severity', 'Unknown'),
+                context=context
+            )
+            proactive_alerts = self._generate_alerts(asset_id, work_order)
+            self.log(f"📤 Pushed {len(proactive_alerts)} proactive alerts")
+            
         self.brain.save()
         
         return {
@@ -735,7 +754,9 @@ class Orchestrator:
             'healed_nodes': healed_nodes,
             'winner_id': winner_id,
             'structured_rule': structured_rule,
-            'agent_log': self.agent_log
+            'agent_log': self.agent_log,
+            'work_order': work_order,
+            'proactive_alerts': proactive_alerts
         }
 
     def _run_multi_agent_debate(self, user_query: str, hypotheses: List[Dict], physics_result: Optional[Dict], context: Dict) -> Dict:
