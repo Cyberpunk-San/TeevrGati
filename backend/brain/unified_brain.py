@@ -29,7 +29,22 @@ class UnifiedBrain:
     def ingest_document(self, parse_result: dict) -> str:
         """Add a document to both KG and RAG index"""
         doc_id = self.kg.add_document(parse_result)
-        self.vector.add_document(doc_id, parse_result.get('pages', []), parse_result.get('metadata', {}))
+        
+        # Build enriched metadata with human-readable source name
+        raw_meta = parse_result.get('metadata', {}) or {}
+        source_file = parse_result.get('source_file') or raw_meta.get('source_file') or ''
+        source_name = (
+            raw_meta.get('title')
+            or (os.path.basename(source_file) if source_file else None)
+            or doc_id
+        )
+        enriched_meta = {
+            **raw_meta,
+            'source': source_name,
+            'title': source_name,
+            'document_id': doc_id,
+        }
+        self.vector.add_document(doc_id, parse_result.get('pages', []), enriched_meta)
         self.kg.save(self.kg_path)
         return doc_id
     

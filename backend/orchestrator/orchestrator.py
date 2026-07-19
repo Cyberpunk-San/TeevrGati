@@ -142,10 +142,21 @@ class Orchestrator:
                     self.log(f"❓ Asking human: {result['human_question']}")
 
                     # Still surface retrieved evidence so conflict path is answerable/scoreable
+                    doc_suggestion = (
+                        conflict.get('doc_suggestion')
+                        or conflict.get('document_hypothesis')
+                        or 'Document-based hypothesis'
+                    )
+                    physics_suggestion = (
+                        conflict.get('physics_suggestion')
+                        or conflict.get('description')
+                        or conflict.get('physics_result')
+                        or 'Physics-based fault'
+                    )
                     result['final_answer'] = (
                         f"{result['document_evidence']}\n\n"
-                        f"⚠️ Conflict: docs suggest '{conflict.get('doc_suggestion', 'N/A')}' "
-                        f"vs physics '{conflict.get('physics_suggestion', conflict.get('description', 'N/A'))}'. "
+                        f"⚠️ Conflict: docs suggest **'{doc_suggestion}'** "
+                        f"vs physics **'{physics_suggestion}'**. "
                         f"Awaiting engineer resolution."
                     )
                     
@@ -608,7 +619,18 @@ class Orchestrator:
         lines = ["📄 **Document evidence:**"]
         for i, chunk in enumerate(rag_chunks[:5], 1):
             text = (chunk.get('text') or '').strip().replace('\n', ' ')
-            src = chunk.get('source') or chunk.get('metadata', {}).get('source') or 'unknown'
+            # Prefer explicit source, then document_id from metadata, then fallback
+            meta = chunk.get('metadata', {})
+            src = (
+                chunk.get('source')
+                or meta.get('source')
+                or meta.get('document_id')
+                or meta.get('title')
+                or 'Document'
+            )
+            # Clean up auto-generated document_id timestamps to something human-readable
+            if src and src.startswith('doc_'):
+                src = meta.get('title') or src
             if text:
                 lines.append(f"{i}. [{src}] {text[:500]}")
         return "\n".join(lines)
