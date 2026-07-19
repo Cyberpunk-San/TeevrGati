@@ -175,7 +175,7 @@ class Orchestrator:
             
             # Step 7: Take action if critical (Guardian)
             physics_res = result.get('physics_result')
-            if physics_res and physics_res.get('severity') in ['Critical', 'Alert', 'High']:
+            if physics_res and physics_res.get('severity') in ['Critical', 'Alert', 'High', 'Warning']:
                 self.log("🚨 Phase 6: Guardian - Generating work order and alerts...")
                 work_order = self.work_order_gen.create_work_order(
                     asset_id=asset_id or "P-201",
@@ -645,7 +645,7 @@ class Orchestrator:
         """
         alerts = []
         
-        if work_order and work_order.get('severity') in ['Critical', 'Alert', 'High']:
+        if work_order and work_order.get('severity') in ['Critical', 'Alert', 'High', 'Warning']:
             alerts.append(self.push_engine.push_alert(
                 alert_type='critical_alert',
                 title="🚨 CRITICAL ALERT",
@@ -733,8 +733,8 @@ class Orchestrator:
         proactive_alerts = []
         physics_res = query_result.get('physics_result')
         
-        # Only generate work order if there's actually a fault (physics severity is high)
-        if physics_res and physics_res.get('severity') in ['Critical', 'Alert', 'High']:
+        # Only generate work order if there's actually a fault (physics severity is high/warning)
+        if physics_res and physics_res.get('severity') in ['Critical', 'Alert', 'High', 'Warning']:
             self.log("🚨 Phase 6: Guardian - Generating work order and alerts post-resolution...")
             # For context, use the structured rule if human, or the reason if system
             context = f"Resolution: {choice.upper()} - {reason}"
