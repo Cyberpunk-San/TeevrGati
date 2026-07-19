@@ -147,10 +147,11 @@ class Orchestrator:
                         or conflict.get('document_hypothesis')
                         or 'Document-based hypothesis'
                     )
+                    # Prefer the raw physics fault label, not the full description sentence
                     physics_suggestion = (
                         conflict.get('physics_suggestion')
-                        or conflict.get('description')
                         or conflict.get('physics_result')
+                        or conflict.get('description')
                         or 'Physics-based fault'
                     )
                     result['final_answer'] = (
@@ -628,9 +629,12 @@ class Orchestrator:
                 or meta.get('title')
                 or 'Document'
             )
-            # Clean up auto-generated document_id timestamps to something human-readable
-            if src and src.startswith('doc_'):
-                src = meta.get('title') or src
+            # For auto-generated doc_ timestamp IDs, extract a smart title from the chunk text
+            import re as _re
+            if src and _re.match(r'^doc_\d{8}_\d{6}', src):
+                # Try to extract first meaningful line as a title
+                first_line = text.split('·')[0].strip() if '·' in text else text[:60].strip()
+                src = first_line or src
             if text:
                 lines.append(f"{i}. [{src}] {text[:500]}")
         return "\n".join(lines)
