@@ -13,10 +13,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+import { PLANT_NAME } from "./config";
+
 export const metadata: Metadata = {
-  title: "TeevrGati · BPCL Mathura Refinery",
+  title: `TeevrGati · ${PLANT_NAME}`,
   description:
-    "AI diagnostics platform for BPCL Mathura Refinery — closed-loop decision support connecting manuals, sensor telemetry, and operator tacit knowledge.",
+    `AI diagnostics platform for ${PLANT_NAME} — closed-loop decision support connecting manuals, sensor telemetry, and operator tacit knowledge.`,
   themeColor: "#09090b",
   manifest: "/manifest.json",
 };

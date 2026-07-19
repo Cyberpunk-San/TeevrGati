@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { Wrench, ShieldAlert, Mail, RefreshCw, Bell, CheckCircle } from "lucide-react";
 import { apiPost, ApiError } from "../lib/apiClient";
 
+import { DEFAULT_ASSET_ID } from "../config";
+
 interface WorkOrder {
   id: string;
   priority: string;
@@ -52,7 +54,7 @@ export default function MaintenancePage() {
     try {
       const data = await apiPost<{ success: boolean; alert: PushAlert; summary: Record<string, unknown> }>(
         "/api/shift-briefing",
-        { asset_id: "P-201", shift: "Day" }
+        { asset_id: DEFAULT_ASSET_ID, shift: "Day" }
       );
       if (data.alert) {
         setAlerts((prev) => {

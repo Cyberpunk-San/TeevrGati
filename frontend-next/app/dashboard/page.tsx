@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { ShieldAlert, CheckCircle2, AlertTriangle, Play, RefreshCw } from "lucide-react";
 import { apiGet, ApiError } from "../lib/apiClient";
 
+import { PLANT_NAME } from "../config";
+
 interface ComplianceReport {
   docName: string;
   category: string;
@@ -117,7 +119,7 @@ export default function Dashboard() {
           <div className="label">Operations</div>
           <h1 className="page-title" style={{ marginTop: 8 }}>Compliance & system control</h1>
           <p className="page-subtitle">
-            Benchmark metrics and regulatory safety coverage for BPCL Mathura assets.
+            Benchmark metrics and regulatory safety coverage for {PLANT_NAME} assets.
           </p>
         </div>
         <button className="btn btn-primary" onClick={runDiagnostics} disabled={loading}>

@@ -201,14 +201,16 @@ function LogConsole({ logs }: { logs: AgentLog[] }) {
 }
 
 /* ─────────────────────────── Main Page ────────────────────────────────────── */
-const QUICK_QUERIES = [
-  { label: "P-201 High Vibration", query: "Pump P-201 is vibrating loudly. What could be wrong?" },
-  { label: "LOTO Procedure P-201", query: "What are the lockout-tagout steps for Pump P-201 bearing replacement?" },
-  { label: "SOP Contradiction Check", query: "Check for contradictions in P-201 maintenance SOP between 2019 and 2024 versions." },
+import { DEFAULT_QUERY, DEFAULT_ASSET_ID } from "./config";
+
+const getQuickQueries = (assetId: string) => [
+  { label: `${assetId} High Vibration`, query: `Pump ${assetId} is vibrating loudly. What could be wrong?` },
+  { label: `LOTO Procedure ${assetId}`, query: `What are the lockout-tagout steps for Pump ${assetId} bearing replacement?` },
+  { label: "SOP Contradiction Check", query: `Check for contradictions in ${assetId} maintenance SOP between 2019 and 2024 versions.` },
 ];
 
 export default function Home() {
-  const [query, setQuery] = useState("Pump P-201 is vibrating loudly. What could be wrong?");
+  const [query, setQuery] = useState(DEFAULT_QUERY);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<QueryResult | null>(null);
   const [resolving, setResolving] = useState(false);
@@ -366,7 +368,7 @@ export default function Home() {
           <div className="card card-pad">
             <div className="label" style={{ marginBottom: 16 }}>Quick queries</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {QUICK_QUERIES.map((q) => (
+              {getQuickQueries(DEFAULT_ASSET_ID).map((q) => (
                 <button
                   key={q.label}
                   onClick={() => setQuery(q.query)}

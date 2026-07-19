@@ -7,6 +7,8 @@ import {
   Activity, GitBranch, Wrench, Upload, LayoutDashboard
 } from "lucide-react";
 
+import { PLANT_NAME, ASSET_LIST } from "../config";
+
 const NAV_ITEMS = [
   { href: "/",            label: "Diagnostics",  icon: Activity },
   { href: "/dashboard",   label: "Dashboard",    icon: LayoutDashboard },
@@ -27,6 +29,10 @@ export default function NavigationWrapper({ children }: { children: React.ReactN
   const current = NAV_ITEMS.find(
     (n) => n.href === pathname || (n.href !== "/" && pathname.startsWith(n.href))
   );
+
+  const formattedAssets = ASSET_LIST.split(",")
+    .map((s) => s.trim())
+    .join(" · ");
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-base)" }}>
@@ -69,7 +75,7 @@ export default function NavigationWrapper({ children }: { children: React.ReactN
         <div style={{ padding: "20px 22px", borderBottom: "1px solid var(--border-dim)" }}>
           <div className="label" style={{ marginBottom: 8 }}>Active plant</div>
           <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)", lineHeight: 1.4 }}>
-            BPCL Mathura Refinery
+            {PLANT_NAME}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--success)", boxShadow: "0 0 6px #10b98166" }} />
@@ -135,7 +141,7 @@ export default function NavigationWrapper({ children }: { children: React.ReactN
             {current?.label || "Diagnostics"}
           </div>
           <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-            P-201 · C-101 · T-301
+            {formattedAssets}
           </div>
           <div className="badge badge-accent">gemini-2.0-flash</div>
         </header>

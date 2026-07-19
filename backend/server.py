@@ -13,6 +13,19 @@ from typing import Optional, Dict, Any
 # ── Absolute path anchored to this file — safe regardless of CWD ─────────────
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+def resolve_path(env_var: str, default_rel_path: str) -> str:
+    """Resolve configured file/directory paths safely, supporting relative or absolute values."""
+    val = os.getenv(env_var)
+    if not val:
+        val = default_rel_path
+    if not os.path.isabs(val):
+        return os.path.join(BASE_DIR, val)
+    return val
+
+# ── Dynamic Plant and Asset Configurations ────────────────────────────────────
+PLANT_NAME = os.getenv("TEEVRGATI_PLANT_NAME", "BPCL Mathura Refinery")
+DEFAULT_ASSET_ID = os.getenv("TEEVRGATI_DEFAULT_ASSET_ID", "P-201")
+
 # Initialize structured logging
 logging.basicConfig(
     level=logging.INFO,
@@ -30,7 +43,6 @@ try:
 except ImportError:
     pass
 
-# Ensure root workspace is in path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
@@ -179,11 +191,19 @@ app = FastAPI(
 # CORS Policy: dev origins always included; production origins loaded from env var
 # Set TEEVRGATI_CORS_ORIGINS=https://your-domain.com,https://www.your-domain.com in .env
 _extra_origins = os.getenv("TEEVRGATI_CORS_ORIGINS", "")
-allowed_origins = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:3002",
-] + [o.strip() for o in _extra_origins.split(",") if o.strip()]
+is_prod = os.getenv('TEEVRGATI_ENV', '').lower() == 'production'
+
+allowed_origins = [o.strip() for o in _extra_origins.split(",") if o.strip()]
+if not allowed_origins:
+    if is_prod:
+        logger.warning("[CORS] Running in production but TEEVRGATI_CORS_ORIGINS is not set! Falling back to empty origins list (no external domain access).")
+    else:
+        # Fallback to localhost for development
+        allowed_origins = [
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:3002",
+        ]
 
 app.add_middleware(
     CORSMiddleware,
@@ -233,7 +253,16 @@ security = HTTPBearer(auto_error=False)
 
 def verify_token(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):
     """Validates the Authorization Bearer Token (RFC 6750)."""
-    api_key = os.getenv('TEEVRGATI_API_KEY', 'dev-key')
+    api_key = os.getenv('TEEVRGATI_API_KEY')
+    is_prod = os.getenv('TEEVRGATI_ENV', '').lower() == 'production'
+    if not api_key:
+        if is_prod:
+            logger.error("[Security] Insecure deployment: TEEVRGATI_API_KEY is not set in production!")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="System configuration error: API key must be set in production mode."
+            )
+        api_key = 'dev-key'
     if credentials is None or credentials.credentials != api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -291,8 +320,7 @@ def get_metrics():
         outdated_count = sum(1 for n, d in kg.graph.nodes(data=True) if d.get('status') == 'outdated')
         
         # Retrieve parsed files
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        parsed_dir = os.path.join(base_dir, "backend", "data", "parsed")
+        parsed_dir = resolve_path("TEEVRGATI_PARSED_DIR", "backend/data/parsed")
         parsed_files = glob.glob(os.path.join(parsed_dir, "*.json"))
         
         detector = ComplianceGapDetector()
@@ -375,9 +403,9 @@ def get_metrics():
             # Run on predefined procedure texts representing the three standard seeded docs
             seeds = [
                 {
-                    'name': "DOC_Pump_P-201_O&M_Manual.pdf",
+                    'name': f"DOC_Pump_{DEFAULT_ASSET_ID}_O&M_Manual.pdf",
                     'category': "Rotary Equipment Standard",
-                    'text': "This is the official O&M manual for Pump P-201. Always wear PPE and follow LOTO guidelines. Confined space ventilation must be checked before working on casing."
+                    'text': f"This is the official O&M manual for Pump {DEFAULT_ASSET_ID}. Always wear PPE and follow LOTO guidelines. Confined space ventilation must be checked before working on casing."
                 },
                 {
                     'name': "SOP_Turbine_Bearing_Overhaul.pdf",
@@ -472,7 +500,7 @@ async def run_query(request_payload: QueryRequest):
     """Executes a multi-agent diagnostic query: Historian → Simulator → Conflict Detector → Synthesis."""
     def _run() -> dict:
         orchestrator = get_orchestrator()
-        sample_pdf_path = os.path.join(BASE_DIR, "backend", "data", "sample", "pump_manual.pdf")
+        sample_pdf_path = resolve_path("TEEVRGATI_SAMPLE_PDF_PATH", "backend/data/sample/pump_manual.pdf")
         if not os.path.exists(sample_pdf_path):
             from backend.test_orchestrator import create_sample_pdf
             create_sample_pdf(sample_pdf_path)
@@ -521,7 +549,7 @@ async def resolve_conflict(request_payload: ResolveRequest):
 async def ingest_document(request_payload: IngestRequest):
     """Saves, parses, and indexes a base64-encoded PDF or image. Returns 201 Created on success."""
     def _run() -> dict:
-        raw_dir = os.path.join(BASE_DIR, "backend", "data", "raw")
+        raw_dir = resolve_path("TEEVRGATI_RAW_DIR", "backend/data/raw")
         os.makedirs(raw_dir, exist_ok=True)
         temp_path = os.path.join(raw_dir, request_payload.filename)
 
@@ -570,26 +598,27 @@ def get_contradictions():
         contradictions = []
 
         # Pre-loaded known contradictions for demo (from seeded synthetic SOPs)
+        plant_id_safe = PLANT_NAME.replace(" ", "_")
         known_conflicts = [
             {
                 "id": "CONFLICT-001",
                 "type": "specification_mismatch",
                 "severity": "HIGH",
-                "description": "Conflicting torque specification for Pump P-201 coupling bolts",
+                "description": f"Conflicting torque specification for Pump {DEFAULT_ASSET_ID} coupling bolts",
                 "document_a": {
-                    "name": "SOP_P201_Maintenance_v2019.pdf",
+                    "name": f"SOP_{DEFAULT_ASSET_ID}_Maintenance_v2019.pdf",
                     "date": "2019-03-15",
-                    "excerpt": "Torque specification for coupling bolts: 80 Nm. Apply LOTO sequence: Step A (close suction valve V-201A) then Step B (close discharge valve V-201B).",
+                    "excerpt": f"Torque specification for coupling bolts: 80 Nm. Apply LOTO sequence: Step A (close suction valve V-201A) then Step B (close discharge valve V-201B).",
                     "status": "outdated"
                 },
                 "document_b": {
-                    "name": "SOP_P201_Maintenance_v2024.pdf",
+                    "name": f"SOP_{DEFAULT_ASSET_ID}_Maintenance_v2024.pdf",
                     "date": "2024-01-10",
-                    "excerpt": "Torque specification for coupling bolts: 95 Nm (updated per API 610-12th Ed.). LOTO sequence revised: Step B (close discharge valve V-201B) then Step A (close suction valve V-201A).",
+                    "excerpt": f"Torque specification for coupling bolts: 95 Nm (updated per API 610-12th Ed.). LOTO sequence revised: Step B (close discharge valve V-201B) then Step A (close suction valve V-201A).",
                     "status": "active"
                 },
-                "resolution_hint": "The 2024 revision (95 Nm, revised LOTO sequence) supersedes the 2019 version per API 610-12th Edition. Use 2024 document. Retire 2019 SOP.",
-                "affected_equipment": ["P-201"]
+                "resolution_hint": f"The 2024 revision (95 Nm, revised LOTO sequence) supersedes the 2019 version per API 610-12th Edition. Use 2024 document. Retire 2019 SOP.",
+                "affected_equipment": [DEFAULT_ASSET_ID]
             },
             {
                 "id": "CONFLICT-002",
@@ -603,13 +632,13 @@ def get_contradictions():
                     "status": "active"
                 },
                 "document_b": {
-                    "name": "BPCL_Mathura_PM_Schedule_2023.pdf",
+                    "name": f"{plant_id_safe}_PM_Schedule_2023.pdf",
                     "date": "2023-11-20",
                     "excerpt": "Bearing replacement interval extended to 12,000 hours based on upgraded grease specification (Mobil SHC 100).",
                     "status": "active"
                 },
                 "resolution_hint": "Both documents are active. Interval conflict requires engineering review. Apply conservative 8,000-hour limit until formal revision is issued.",
-                "affected_equipment": ["P-201", "P-202"]
+                "affected_equipment": [DEFAULT_ASSET_ID, "P-202"]
             }
         ]
 
@@ -644,7 +673,7 @@ def get_contradictions():
 
 
 class ShiftBriefingRequest(BaseModel):
-    asset_id: str = Field("P-201", description="Primary equipment asset for this shift")
+    asset_id: str = Field(DEFAULT_ASSET_ID, description="Primary equipment asset for this shift")
     shift: str = Field("Day", description="Shift name: Day, Night, or Afternoon")
 
 
@@ -696,7 +725,7 @@ def push_shift_briefing(request_payload: ShiftBriefingRequest):
 
 
 class TacitInterviewRequest(BaseModel):
-    asset_id: str = Field("P-201", description="Equipment tag to interview about")
+    asset_id: str = Field(DEFAULT_ASSET_ID, description="Equipment tag to interview about")
     engineer_name: str = Field("Sr. Engineer", description="Name of the departing/retiring engineer")
 
 
@@ -744,7 +773,7 @@ def seed_graph():
         
         # Load from config/seed_data.json if kg is empty
         if not kg.graph.nodes:
-            seed_path = os.path.join(BASE_DIR, "backend", "data", "kg", "seed_data.json")
+            seed_path = resolve_path("TEEVRGATI_SEED_PATH", "backend/data/kg/seed_data.json")
             
             if not os.path.exists(seed_path):
                 logger.warning(f"Seed file {seed_path} not found. Skipping seeding.")

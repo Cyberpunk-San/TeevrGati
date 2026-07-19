@@ -2,6 +2,12 @@
 const nextConfig = {
   // Security headers applied to every Next.js response
   async headers() {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "";
+    const connectSrc = ["'self'", "http://localhost:8000", "https://localhost:8000"];
+    if (backendUrl && !connectSrc.includes(backendUrl)) {
+      connectSrc.push(backendUrl);
+    }
+
     return [
       {
         source: "/(.*)",
@@ -19,7 +25,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob:",
-              "connect-src 'self' http://localhost:8000 https://localhost:8000",  // API backend
+              `connect-src ${connectSrc.join(" ")}`,  // API backend
               "frame-ancestors 'none'",
             ].join("; "),
           },
