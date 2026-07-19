@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import sys
@@ -5,8 +6,12 @@ import logging
 import base64
 import uuid
 import re
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
+
+# ── Absolute path anchored to this file — safe regardless of CWD ─────────────
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Initialize structured logging
 logging.basicConfig(
@@ -36,11 +41,10 @@ except ImportError as e:
     print("Please ensure you install all requirements: pip install -r requirements.txt")
     sys.exit(1)
 
-from fastapi import FastAPI, Depends, HTTPException, Security, status, Request
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
-from fastapi.exception_handlers import http_exception_handler
 from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel, Field, field_validator
 
@@ -130,6 +134,28 @@ class IngestRequest(BaseModel):
 # ----------------------------------------------------
 # FastAPI App Setup & Middleware
 # ----------------------------------------------------
+
+# ── Orchestrator singleton (declared early so lifespan can reference it) ─────
+_orchestrator_instance: Optional[Orchestrator] = None
+
+def get_orchestrator() -> Orchestrator:
+    global _orchestrator_instance
+    if _orchestrator_instance is None:
+        _orchestrator_instance = Orchestrator()
+        logger.info("[Orchestrator] Singleton initialised.")
+    return _orchestrator_instance
+
+# ── Modern FastAPI lifespan (replaces deprecated @app.on_event) ───────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Pre-warm the Orchestrator singleton during startup."""
+    logger.info("[Startup] Pre-warming Orchestrator singleton...")
+    await asyncio.to_thread(get_orchestrator)
+    logger.info("[Startup] Orchestrator ready.")
+    yield
+    # Shutdown: nothing to tear down for now
+    logger.info("[Shutdown] Server shutting down.")
+
 app = FastAPI(
     title="TeevrGati — AI Industrial Mind API",
     description=(
@@ -140,6 +166,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    lifespan=lifespan,
     openapi_tags=[
         {"name": "diagnostics", "description": "Query and conflict resolution"},
         {"name": "ingestion",   "description": "Document ingestion"},
@@ -213,24 +240,6 @@ def verify_token(credentials: Optional[HTTPAuthorizationCredentials] = Depends(s
             detail="Invalid or missing Bearer token.",
             headers={"WWW-Authenticate": "Bearer"},  # RFC 6750 §3
         )
-
-# ── Orchestrator singleton ────────────────────────────────────────────────────
-# Initialised once at startup to avoid reloading sentence-transformers
-# (a ~5s cold-start) on every single request.
-_orchestrator_instance: Optional[Orchestrator] = None
-
-def get_orchestrator() -> Orchestrator:
-    global _orchestrator_instance
-    if _orchestrator_instance is None:
-        _orchestrator_instance = Orchestrator()
-        logger.info("[Orchestrator] Singleton initialised.")
-    return _orchestrator_instance
-
-@app.on_event("startup")
-async def startup_event():
-    logger.info("[Startup] Pre-warming Orchestrator singleton...")
-    get_orchestrator()
-    logger.info("[Startup] Orchestrator ready.")
 
 # ── Health / liveness endpoint (no auth required) ────────────────────────────
 @app.get("/health", tags=["health"], summary="Liveness probe")
@@ -459,11 +468,11 @@ def get_metrics():
         )
 
 @app.post("/api/query", dependencies=[Depends(verify_token)], tags=["diagnostics"], summary="Run multi-agent diagnostic query")
-def run_query(request_payload: QueryRequest):
+async def run_query(request_payload: QueryRequest):
     """Executes a multi-agent diagnostic query: Historian → Simulator → Conflict Detector → Synthesis."""
-    try:
+    def _run() -> dict:
         orchestrator = get_orchestrator()
-        sample_pdf_path = "backend/data/sample/pump_manual.pdf"
+        sample_pdf_path = os.path.join(BASE_DIR, "backend", "data", "sample", "pump_manual.pdf")
         if not os.path.exists(sample_pdf_path):
             from backend.test_orchestrator import create_sample_pdf
             create_sample_pdf(sample_pdf_path)
@@ -471,7 +480,10 @@ def run_query(request_payload: QueryRequest):
             parse_result = parser.parse(sample_pdf_path)
             if parse_result.get('success'):
                 orchestrator.brain.ingest_document(parse_result)
-        result = orchestrator.process_query(request_payload.query, asset_id=request_payload.asset_id)
+        return orchestrator.process_query(request_payload.query, asset_id=request_payload.asset_id)
+
+    try:
+        result = await asyncio.to_thread(_run)
         return JSONResponse(content=sanitise_for_json(result))
     except Exception as e:
         logger.error(f"Error processing query: {e}")
@@ -481,15 +493,18 @@ def run_query(request_payload: QueryRequest):
         )
 
 @app.post("/api/resolve", dependencies=[Depends(verify_token)], tags=["diagnostics"], summary="Apply conflict resolution and self-heal graph")
-def resolve_conflict(request_payload: ResolveRequest):
+async def resolve_conflict(request_payload: ResolveRequest):
     """Reconciles discrepancies between documentation and live sensor telemetry."""
-    try:
+    def _run() -> dict:
         orchestrator = get_orchestrator()
-        result = orchestrator.resolve_conflict(
+        return orchestrator.resolve_conflict(
             request_payload.query_result,
             request_payload.choice,
             request_payload.human_feedback
         )
+
+    try:
+        result = await asyncio.to_thread(_run)
         return JSONResponse(content=sanitise_for_json(result))
     except Exception as e:
         logger.error(f"Error executing conflict resolution: {e}")
@@ -503,34 +518,38 @@ def resolve_conflict(request_payload: ResolveRequest):
           tags=["ingestion"],
           summary="Ingest a new document into the knowledge base",
           status_code=status.HTTP_201_CREATED)
-def ingest_document(request_payload: IngestRequest):
+async def ingest_document(request_payload: IngestRequest):
     """Saves, parses, and indexes a base64-encoded PDF or image. Returns 201 Created on success."""
-    try:
-        raw_dir = "backend/data/raw"
+    def _run() -> dict:
+        raw_dir = os.path.join(BASE_DIR, "backend", "data", "raw")
         os.makedirs(raw_dir, exist_ok=True)
         temp_path = os.path.join(raw_dir, request_payload.filename)
-        
+
         file_bytes = base64.b64decode(request_payload.content)
         with open(temp_path, "wb") as f:
             f.write(file_bytes)
-            
+
         parser = DocumentParser()
         parse_result = parser.parse(temp_path)
-        
+
         if parse_result.get('success'):
             orchestrator = get_orchestrator()
             orchestrator.brain.ingest_document(parse_result)
-            
+
         return parse_result
+
+    try:
+        result = await asyncio.to_thread(_run)
+        return result
     except Exception as e:
         logger.error(f"Error running document ingestion parser: {e}")
         raise HTTPException(
-            status_code=500,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Document parsing/ingest execution failed: {str(e)}"
         )
 
 
-@app.get("/api/contradictions", dependencies=[Depends(verify_token)])
+@app.get("/api/contradictions", dependencies=[Depends(verify_token)], tags=["diagnostics"], summary="Scan ingested documents for contradictions")
 def get_contradictions():
     """
     Scan all ingested documents for contradicting facts.
@@ -616,7 +635,7 @@ def get_contradictions():
             "resolved_conflicts": len(resolved_contradictions),
             "active_contradictions": known_conflicts,
             "graph_resolutions": resolved_contradictions,
-            "scan_timestamp": __import__('datetime').datetime.now().isoformat(),
+            "scan_timestamp": datetime.now(timezone.utc).isoformat(),
             "message": f"Found {len(known_conflicts)} active contradictions requiring human review."
         }
     except Exception as e:
@@ -629,7 +648,7 @@ class ShiftBriefingRequest(BaseModel):
     shift: str = Field("Day", description="Shift name: Day, Night, or Afternoon")
 
 
-@app.post("/api/shift-briefing", dependencies=[Depends(verify_token)])
+@app.post("/api/shift-briefing", dependencies=[Depends(verify_token)], tags=["monitoring"], summary="Generate proactive shift-changeover briefing")
 def push_shift_briefing(request_payload: ShiftBriefingRequest):
     """
     Proactive shift-changeover briefing push — sent to incoming shift supervisor
@@ -681,7 +700,7 @@ class TacitInterviewRequest(BaseModel):
     engineer_name: str = Field("Sr. Engineer", description="Name of the departing/retiring engineer")
 
 
-@app.post("/api/tacit/interview", dependencies=[Depends(verify_token)])
+@app.post("/api/tacit/interview", dependencies=[Depends(verify_token)], tags=["diagnostics"], summary="Run guided tacit knowledge exit interview")
 def run_tacit_interview(request_payload: TacitInterviewRequest):
     """
     Guided 5-question tacit knowledge exit interview.
@@ -700,7 +719,7 @@ def run_tacit_interview(request_payload: TacitInterviewRequest):
         return {
             "asset_id": request_payload.asset_id,
             "engineer_name": request_payload.engineer_name,
-            "session_id": f"TACIT-{request_payload.asset_id}-{__import__('datetime').datetime.now().strftime('%Y%m%d%H%M')}",
+            "session_id": f"TACIT-{request_payload.asset_id}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M')}",
             "interview_questions": questions,
             "instructions": (
                 "Present each question conversationally. Capture the engineer's response and "
@@ -725,8 +744,7 @@ def seed_graph():
         
         # Load from config/seed_data.json if kg is empty
         if not kg.graph.nodes:
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            seed_path = os.path.join(base_dir, "backend", "data", "kg", "seed_data.json")
+            seed_path = os.path.join(BASE_DIR, "backend", "data", "kg", "seed_data.json")
             
             if not os.path.exists(seed_path):
                 logger.warning(f"Seed file {seed_path} not found. Skipping seeding.")

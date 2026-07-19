@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { gsap } from "gsap";
-import { RefreshCw, Cpu } from "lucide-react";
-import { API_URL, API_KEY } from "../config";
+import { RefreshCw, Cpu, AlertTriangle } from "lucide-react";
+import { apiGet, ApiError } from "../lib/apiClient";
 
 interface GraphNode {
   id: string;
@@ -117,28 +117,27 @@ function layoutNodes(nodes: GraphNode[]) {
 export default function GraphPage() {
   const [graphData, setGraphData] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] }>({ nodes: [], edges: [] });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [activeNode, setActiveNode] = useState<GraphNode | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const graphContainerRef = useRef<HTMLDivElement>(null);
 
   const fetchGraph = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/graph`, {
-        headers: { Authorization: `Bearer ${API_KEY}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setGraphData(data);
-        if (graphContainerRef.current) {
-          gsap.fromTo(
-            graphContainerRef.current,
-            { opacity: 0, y: 8 },
-            { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }
-          );
-        }
+      const data = await apiGet<{ nodes: GraphNode[]; edges: GraphEdge[] }>("/api/graph");
+      setGraphData(data);
+      if (graphContainerRef.current) {
+        gsap.fromTo(
+          graphContainerRef.current,
+          { opacity: 0, y: 8 },
+          { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }
+        );
       }
     } catch (err) {
+      const msg = err instanceof ApiError ? err.detail : "Failed to load knowledge graph.";
+      setError(msg);
       console.error(err);
     } finally {
       setLoading(false);

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Wrench, ShieldAlert, ShieldCheck, Mail, RefreshCw } from "lucide-react";
+import { Wrench, ShieldAlert, Mail, RefreshCw, Bell, CheckCircle } from "lucide-react";
+import { apiPost, ApiError } from "../lib/apiClient";
 
 interface WorkOrder {
   id: string;
@@ -17,30 +18,26 @@ interface PushAlert {
   type: string;
   recipient: string;
   message: string;
-  title: string;
+  title?: string;
 }
 
 export default function MaintenancePage() {
   const [workOrder, setWorkOrder] = useState<WorkOrder | null>(null);
   const [alerts, setAlerts] = useState<PushAlert[]>([]);
+  const [briefingLoading, setBriefingLoading] = useState(false);
+  const [briefingError, setBriefingError] = useState<string | null>(null);
 
-  const loadData = () => {
+  /* ── Load work-order from previous diagnostic session ── */
+  const loadLocalData = () => {
     const savedResult = localStorage.getItem("query_result");
     if (savedResult) {
       try {
         const parsed = JSON.parse(savedResult);
-        if (parsed.work_order) {
-          setWorkOrder(parsed.work_order);
-        } else {
-          setWorkOrder(null);
-        }
-        if (parsed.proactive_alerts) {
-          setAlerts(parsed.proactive_alerts);
-        } else {
-          setAlerts([]);
-        }
-      } catch (e) {
-        console.error(e);
+        setWorkOrder(parsed.work_order ?? null);
+        setAlerts(parsed.proactive_alerts ?? []);
+      } catch {
+        setWorkOrder(null);
+        setAlerts([]);
       }
     } else {
       setWorkOrder(null);
@@ -48,8 +45,33 @@ export default function MaintenancePage() {
     }
   };
 
+  /* ── Fetch proactive shift briefing from backend ── */
+  const fetchShiftBriefing = async () => {
+    setBriefingLoading(true);
+    setBriefingError(null);
+    try {
+      const data = await apiPost<{ success: boolean; alert: PushAlert; summary: Record<string, unknown> }>(
+        "/api/shift-briefing",
+        { asset_id: "P-201", shift: "Day" }
+      );
+      if (data.alert) {
+        setAlerts((prev) => {
+          // Avoid duplicate briefing entries
+          const withoutBriefing = prev.filter((a) => a.type !== "shift_briefing");
+          return [{ ...data.alert, type: "shift_briefing" }, ...withoutBriefing];
+        });
+      }
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.detail : "Could not load shift briefing.";
+      setBriefingError(msg);
+    } finally {
+      setBriefingLoading(false);
+    }
+  };
+
   useEffect(() => {
-    loadData();
+    loadLocalData();
+    fetchShiftBriefing();
   }, []);
 
   const handleClear = () => {
@@ -60,130 +82,211 @@ export default function MaintenancePage() {
     setAlerts([]);
   };
 
+  const alertBorderColor = (type: string) => {
+    if (type === "critical_alert") return "rgba(244,63,94,0.3)";
+    if (type === "safety_alert") return "rgba(245,158,11,0.3)";
+    if (type === "shift_briefing") return "rgba(34,211,238,0.3)";
+    return "var(--border)";
+  };
+  const alertBg = (type: string) => {
+    if (type === "critical_alert") return "rgba(244,63,94,0.06)";
+    if (type === "safety_alert") return "rgba(245,158,11,0.06)";
+    if (type === "shift_briefing") return "var(--accent-dim)";
+    return "var(--bg-base)";
+  };
+  const alertTextColor = (type: string) => {
+    if (type === "critical_alert") return "var(--danger)";
+    if (type === "safety_alert") return "var(--warning)";
+    if (type === "shift_briefing") return "var(--accent)";
+    return "var(--text-secondary)";
+  };
+
   return (
     <div className="page-shell">
       <div className="page-header">
         <div>
           <div className="label">Field operations</div>
-          <h1 className="page-title" style={{ marginTop: 8 }}>Maintenance & dispatch</h1>
+          <h1 className="page-title" style={{ marginTop: 8 }}>Maintenance &amp; dispatch</h1>
           <p className="page-subtitle">
             LOTO work orders and proactive alerts generated from diagnostic runs.
           </p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={loadData} className="btn btn-ghost">
-            <RefreshCw size={14} /> Sync
+          <button
+            className="btn btn-ghost"
+            onClick={() => { loadLocalData(); fetchShiftBriefing(); }}
+            disabled={briefingLoading}
+          >
+            <RefreshCw size={14} style={briefingLoading ? { animation: "spin 1s linear infinite" } : undefined} />
+            Sync
           </button>
-          <button onClick={handleClear} className="btn btn-danger">
+          <button className="btn btn-danger" onClick={handleClear}>
             Clear logs
           </button>
         </div>
       </div>
 
+      {briefingError && (
+        <div style={{
+          padding: "12px 16px", borderRadius: "var(--r-sm)",
+          background: "rgba(244,63,94,0.06)", border: "1px solid rgba(244,63,94,0.25)",
+          color: "var(--danger)", fontSize: 13, display: "flex", gap: 10, alignItems: "center",
+        }}>
+          {briefingError}
+          <button onClick={() => setBriefingError(null)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "inherit" }}>✕</button>
+        </div>
+      )}
+
       <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 28, alignItems: "start" }}>
-        
+
+        {/* ── Work order ── */}
         <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <h3 className="label" style={{ color: "var(--accent)", display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="label" style={{ color: "var(--accent)", display: "flex", alignItems: "center", gap: 8 }}>
             <Wrench size={14} color="var(--accent)" />
             Active work order
-          </h3>
+          </div>
 
           {workOrder ? (
-            <div className="flex flex-col gap-4">
-              <div className="flex justify-between items-center bg-[#0d1527] p-3 rounded-lg border border-[#1e293b]">
-                <div>
-                  <span className="text-[#64748b] text-[9px] block uppercase">Work Order ID</span>
-                  <span className="text-[#00f5d4] font-mono text-sm font-bold">{workOrder.id}</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+              {/* Header row */}
+              <div style={{
+                display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12,
+              }}>
+                <div style={{
+                  padding: "14px 16px", borderRadius: "var(--r-sm)",
+                  background: "var(--bg-base)", border: "1px solid var(--border-dim)",
+                }}>
+                  <div className="label" style={{ marginBottom: 6 }}>Work order ID</div>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--accent)", fontWeight: 600 }}>
+                    {workOrder.id}
+                  </div>
                 </div>
-                <div>
-                  <span className="text-[#64748b] text-[9px] block uppercase">Vibration Urgency</span>
-                  <span className="text-rose-400 text-xs font-bold">{workOrder.priority}</span>
+                <div style={{
+                  padding: "14px 16px", borderRadius: "var(--r-sm)",
+                  background: "var(--bg-base)", border: "1px solid var(--border-dim)",
+                }}>
+                  <div className="label" style={{ marginBottom: 6 }}>Vibration urgency</div>
+                  <div style={{ fontSize: 13, color: "var(--danger)", fontWeight: 600 }}>{workOrder.priority}</div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 text-xs">
+              {/* Stats row */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
-                  <span className="text-[#64748b] text-[10px] block">ESTIMATED LABOR TIME</span>
-                  <span className="text-white font-bold">{workOrder.labor_estimate_hours} Hours</span>
+                  <div className="label" style={{ marginBottom: 6 }}>Estimated labor</div>
+                  <div style={{ fontSize: 14, fontWeight: 560 }}>{workOrder.labor_estimate_hours} hours</div>
                 </div>
                 <div>
-                  <span className="text-[#64748b] text-[10px] block">CRITICAL PARTS REQUIRED</span>
-                  <span className="text-white font-bold">{workOrder.spare_parts_required.join(", ") || "No parts logged"}</span>
+                  <div className="label" style={{ marginBottom: 6 }}>Critical parts</div>
+                  <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                    {workOrder.spare_parts_required.join(", ") || "No parts logged"}
+                  </div>
                 </div>
               </div>
 
+              {/* Description */}
               {workOrder.description && (
-                <div className="text-xs bg-[#0d1527]/50 p-3 border border-[#1e293b] rounded">
-                  <span className="text-[#64748b] text-[10px] block mb-1">DESCRIPTION</span>
-                  <p className="text-slate-300">{workOrder.description}</p>
+                <div style={{
+                  padding: "14px 16px", borderRadius: "var(--r-sm)",
+                  background: "var(--bg-base)", border: "1px solid var(--border-dim)",
+                }}>
+                  <div className="label" style={{ marginBottom: 6 }}>Description</div>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>{workOrder.description}</p>
                 </div>
               )}
 
-              <div className="border-t border-[#1e293b] pt-3">
-                <span className="text-[#64748b] text-[10px] block mb-2 font-bold uppercase">Maintenance Instructions</span>
-                <ul className="list-decimal pl-4 text-xs text-slate-300 flex flex-col gap-1.5">
+              {/* Instructions */}
+              <div style={{ borderTop: "1px solid var(--border-dim)", paddingTop: 16 }}>
+                <div className="label" style={{ marginBottom: 10 }}>Maintenance instructions</div>
+                <ol style={{ paddingLeft: 20, display: "flex", flexDirection: "column", gap: 8 }}>
                   {workOrder.instructions.map((step, idx) => (
-                    <li key={idx} className="pl-1">{step}</li>
+                    <li key={idx} style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.55 }}>{step}</li>
                   ))}
-                </ul>
+                </ol>
               </div>
 
-              <div className="border-t border-[#1e293b] pt-3">
-                <span className="text-[#64748b] text-[10px] block mb-2 font-bold uppercase">Lockout-Tagout (LOTO) Guidelines</span>
-                <div className="flex flex-col gap-2">
+              {/* LOTO / Safety */}
+              <div style={{ borderTop: "1px solid var(--border-dim)", paddingTop: 16 }}>
+                <div className="label" style={{ marginBottom: 10 }}>Lockout-tagout (LOTO) guidelines</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {workOrder.safety_requirements.map((req, idx) => (
-                    <span key={idx} className="text-xs text-amber-500 flex items-center gap-2 bg-amber-950/10 p-2 rounded border border-amber-900/30">
-                      <ShieldAlert className="h-4 w-4 text-amber-500 flex-shrink-0" />
-                      {req}
-                    </span>
+                    <div key={idx} style={{
+                      display: "flex", alignItems: "flex-start", gap: 10,
+                      padding: "12px 14px", borderRadius: "var(--r-sm)",
+                      background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)",
+                    }}>
+                      <ShieldAlert size={14} color="var(--warning)" style={{ marginTop: 1, flexShrink: 0 }} />
+                      <span style={{ fontSize: 13, color: "var(--warning)", lineHeight: 1.5 }}>{req}</span>
+                    </div>
                   ))}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center text-center h-[320px] border border-dashed border-[#2e374a] rounded-lg p-6">
-              <span className="text-xs text-[#64748b]">No active work order generated. Run diagnostic overrides on the Co-Pilot page first.</span>
+            <div style={{
+              border: "1px dashed var(--border)", borderRadius: "var(--r-md)",
+              padding: 48, textAlign: "center", color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6,
+              minHeight: 280, display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              No active work order. Run a diagnostic on the Co-Pilot page first.
             </div>
           )}
         </div>
 
+        {/* ── Push dispatch / alerts ── */}
         <div className="card card-pad" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <h3 className="label" style={{ color: "var(--accent)", display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="label" style={{ color: "var(--accent)", display: "flex", alignItems: "center", gap: 8 }}>
             <Mail size={14} color="var(--accent)" />
             Push dispatch
-          </h3>
+            {briefingLoading && (
+              <RefreshCw size={11} style={{ marginLeft: 4, animation: "spin 1s linear infinite", color: "var(--text-muted)" }} />
+            )}
+          </div>
 
           {alerts.length > 0 ? (
-            <div className="flex flex-col gap-2 overflow-y-auto max-h-[500px]">
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 480, overflowY: "auto" }}>
               {alerts.map((alert, i) => (
-                <div 
-                  key={i} 
-                  className={`p-3 rounded-lg border text-xs flex flex-col gap-1.5 ${
-                    alert.type === 'critical_alert' 
-                      ? 'bg-rose-950/20 border-rose-900/40 text-rose-300' 
-                      : alert.type === 'safety_alert'
-                      ? 'bg-amber-950/20 border-amber-900/40 text-amber-300'
-                      : 'bg-cyan-950/20 border-cyan-900/40 text-cyan-300'
-                  }`}
-                >
-                  <div className="flex justify-between items-center font-bold">
-                    <span>🔔 {alert.recipient}</span>
-                    <span className="text-[9px] uppercase opacity-75">{alert.type.replace("_", " ")}</span>
+                <div key={i} style={{
+                  padding: "14px 16px", borderRadius: "var(--r-sm)",
+                  background: alertBg(alert.type),
+                  border: `1px solid ${alertBorderColor(alert.type)}`,
+                  display: "flex", flexDirection: "column", gap: 8,
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <Bell size={12} color={alertTextColor(alert.type)} />
+                      <span style={{ fontSize: 12, fontWeight: 600, color: alertTextColor(alert.type) }}>
+                        {alert.recipient || alert.title || "Alert"}
+                      </span>
+                    </div>
+                    <span className="badge badge-default" style={{ fontSize: 10 }}>
+                      {alert.type.replace(/_/g, " ")}
+                    </span>
                   </div>
-                  <p className="text-[11px] font-medium opacity-90 leading-tight">
+                  <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.55 }}>
                     {alert.message}
                   </p>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center text-center h-[320px] border border-dashed border-[#2e374a] rounded-lg p-6">
-              <span className="text-xs text-[#64748b]">No notifications dispatched.</span>
+            <div style={{
+              border: "1px dashed var(--border)", borderRadius: "var(--r-md)",
+              padding: 48, textAlign: "center",
+              color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6,
+              minHeight: 280, display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", gap: 10,
+            }}>
+              <CheckCircle size={22} color="var(--border)" />
+              No notifications dispatched.
             </div>
           )}
         </div>
 
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

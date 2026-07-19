@@ -54,7 +54,7 @@ export function VoiceInput({ onTranscript }: { onTranscript: (text: string) => v
       disabled={isListening}
       title={isListening ? 'Listening...' : 'Voice Input'}
     >
-      {isListening ? <MicOff className="h-4.5 w-4.5" /> : <Mic className="h-4.5 w-4.5" />}
+      {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
     </button>
   );
 }

@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import {
-  Activity, AlertTriangle, Send, Cpu, ShieldAlert, CheckCircle,
+import { Activity, AlertTriangle, Send, Cpu, ShieldAlert, CheckCircle,
   Loader2, BookOpen, Zap, Wrench, MessageSquare, ChevronRight,
   FileText, Eye, X
 } from "lucide-react";
 import { VoiceInput } from "./components/VoiceInput";
 import { PathVisualization } from "./components/PathVisualization";
-import { API_URL, API_KEY } from "./config";
+import { apiPost, ApiError } from "./lib/apiClient";
 
 /* ─────────────────────────────────── Types ─────────────────────────────────── */
 interface AgentLog { timestamp: string; level: string; message: string; }
@@ -217,6 +216,7 @@ export default function Home() {
   const [resolutionDetails, setResolutionDetails] = useState<ResolutionDetails | null>(null);
   const [showInterview, setShowInterview] = useState(false);
   const [humanResponse, setHumanResponse] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -231,8 +231,10 @@ export default function Home() {
 
   const handleQuery = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (!query.trim() || query.trim().length < 3) return;
     setLoading(true);
     setResult(null);
+    setError(null);
     setConflictResolution(null);
     setResolutionDetails(null);
     setShowInterview(false);
@@ -241,17 +243,12 @@ export default function Home() {
     localStorage.removeItem("conflict_resolution");
     localStorage.removeItem("resolution_details");
     try {
-      const res = await fetch(`${API_URL}/api/query`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
-        body: JSON.stringify({ query }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setResult(data);
-        localStorage.setItem("query_result", JSON.stringify(data));
-      }
+      const data = await apiPost<QueryResult>("/api/query", { query });
+      setResult(data);
+      localStorage.setItem("query_result", JSON.stringify(data));
     } catch (err) {
+      const msg = err instanceof ApiError ? err.detail : "Query failed — is the backend running?";
+      setError(msg);
       console.error("Query failed:", err);
     } finally {
       setLoading(false);
@@ -261,26 +258,26 @@ export default function Home() {
   const handleResolve = async (choice: string) => {
     if (!result) return;
     setResolving(true);
+    setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/resolve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
-        body: JSON.stringify({ query_result: result, choice, human_feedback: choice === "human" ? humanResponse : null }),
+      const data = await apiPost<ResolutionDetails>("/api/resolve", {
+        query_result: result,
+        choice,
+        human_feedback: choice === "human" ? humanResponse : null,
       });
-      if (res.ok) {
-        const data = await res.json();
-        setResolutionDetails(data);
-        setConflictResolution(choice);
-        setShowInterview(false);
-        localStorage.setItem("conflict_resolution", choice);
-        localStorage.setItem("resolution_details", JSON.stringify(data));
-        const updatedResult = { ...result };
-        if (updatedResult.agent_log && data.agent_log)
-          updatedResult.agent_log = [...updatedResult.agent_log, ...data.agent_log];
-        setResult(updatedResult);
-        localStorage.setItem("query_result", JSON.stringify(updatedResult));
-      }
+      setResolutionDetails(data);
+      setConflictResolution(choice);
+      setShowInterview(false);
+      localStorage.setItem("conflict_resolution", choice);
+      localStorage.setItem("resolution_details", JSON.stringify(data));
+      const updatedResult = { ...result };
+      if (updatedResult.agent_log && data.agent_log)
+        updatedResult.agent_log = [...updatedResult.agent_log, ...data.agent_log];
+      setResult(updatedResult);
+      localStorage.setItem("query_result", JSON.stringify(updatedResult));
     } catch (err) {
+      const msg = err instanceof ApiError ? err.detail : "Resolution failed — try again.";
+      setError(msg);
       console.error("Resolve failed:", err);
     } finally {
       setResolving(false);
@@ -312,6 +309,20 @@ export default function Home() {
           <span style={{ fontSize: 13, color: "var(--text-muted)" }}>API live</span>
         </div>
       </div>
+
+      {/* ── API error banner ── */}
+      {error && (
+        <div style={{
+          padding: "14px 18px", borderRadius: "var(--r-sm)",
+          background: "rgba(244,63,94,0.08)", border: "1px solid rgba(244,63,94,0.3)",
+          color: "var(--danger)", fontSize: 13, display: "flex", alignItems: "center", gap: 10,
+        }}>
+          <AlertTriangle size={15} style={{ flexShrink: 0 }} />
+          {error}
+          <button onClick={() => setError(null)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "inherit" }}>✕</button>
+        </div>
+      )}
+
 
       {/* ── Pipeline strip ── */}
       <div className="card card-pad" style={{ paddingTop: 28, paddingBottom: 28 }}>

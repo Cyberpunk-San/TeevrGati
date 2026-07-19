@@ -2,27 +2,53 @@
 import { useState } from 'react';
 import { UploadCloud, BookOpen } from 'lucide-react';
 
-export function DocumentDrop({ onIngest, loading = false }: { onIngest: (file: File) => void; loading?: boolean }) {
+const ACCEPTED_MIME_TYPES = [
+  'application/pdf',
+  'image/png',
+  'image/jpeg',
+  'image/tiff',
+  'image/bmp',
+];
+
+export function DocumentDrop({
+  onIngest,
+  onError,
+  loading = false,
+}: {
+  onIngest: (file: File) => void;
+  onError?: (msg: string) => void;
+  loading?: boolean;
+}) {
   const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleFile = (file: File | undefined) => {
+    if (!file) return;
+    if (!ACCEPTED_MIME_TYPES.includes(file.type)) {
+      onError?.('Unsupported file type. Please upload a PDF or image (PNG, JPG, TIFF, BMP).');
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      onError?.('File too large. Maximum upload size is 20 MB.');
+      return;
+    }
+    onIngest(file);
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
   };
 
-  const handleDragLeave = () => {
-    setIsDragOver(false);
-  };
+  const handleDragLeave = () => setIsDragOver(false);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      onIngest(file);
-    } else {
-      alert('Please upload standard PDF files only.');
-    }
+    handleFile(e.dataTransfer.files?.[0]);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFile(e.target.files?.[0]);
   };
 
   return (
@@ -30,20 +56,51 @@ export function DocumentDrop({ onIngest, loading = false }: { onIngest: (file: F
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`border-2 border-dashed rounded-xl p-10 text-center transition-all duration-300 flex flex-col items-center justify-center gap-3 bg-[#0d1527]/40 ${
-        isDragOver 
-          ? 'border-[#00f5d4] bg-[#00f5d4]/5 scale-[1.01]' 
-          : 'border-[#2e374a] hover:border-[#00f5d4]/50'
-      }`}
+      style={{
+        border: `2px dashed ${isDragOver ? 'var(--accent)' : 'var(--border)'}`,
+        borderRadius: 'var(--r-md)',
+        padding: '40px 24px',
+        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 12,
+        background: isDragOver ? 'var(--accent-dim)' : 'var(--bg-base)',
+        transition: 'border-color 0.2s ease, background 0.2s ease',
+        position: 'relative',
+        minHeight: 220,
+        cursor: loading ? 'not-allowed' : 'pointer',
+        opacity: loading ? 0.6 : 1,
+      }}
     >
+      <input
+        type="file"
+        accept="application/pdf,image/png,image/jpeg,image/tiff,image/bmp"
+        onChange={handleChange}
+        disabled={loading}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          opacity: 0,
+          cursor: loading ? 'not-allowed' : 'pointer',
+          width: '100%',
+          height: '100%',
+        }}
+      />
       {isDragOver ? (
-        <UploadCloud className="h-12 w-12 text-[#00f5d4] animate-bounce" />
+        <UploadCloud size={40} color="var(--accent)" />
       ) : (
-        <BookOpen className="h-12 w-12 text-[#64748b]" />
+        <BookOpen size={40} color="var(--text-muted)" />
       )}
       <div>
-        <p className="text-sm font-semibold text-white">Drop dynamic PDF manual here</p>
-        <p className="text-xs text-[#64748b] mt-1">Upload mid-demo to observe knowledge graph self-healing live</p>
+        <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
+          {loading ? 'Uploading…' : 'Drop a PDF or image here'}
+        </p>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+          or <span style={{ color: 'var(--accent)' }}>browse files</span>
+          {' '}— PDF, PNG, JPG, TIFF, BMP · max 20 MB
+        </p>
       </div>
     </div>
   );

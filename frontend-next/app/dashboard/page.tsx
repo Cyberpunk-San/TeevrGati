@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ShieldAlert, CheckCircle2, AlertTriangle, Play, RefreshCw } from "lucide-react";
-import { API_URL, API_KEY } from "../config";
+import { apiGet, ApiError } from "../lib/apiClient";
 
 interface ComplianceReport {
   docName: string;
@@ -62,26 +62,33 @@ export default function Dashboard() {
     compliance_gap_accuracy: 75.0
   });
 
+  const [error, setError] = useState<string | null>(null);
+
   const fetchLiveMetrics = async () => {
+    setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/metrics`, {
-        headers: { "Authorization": `Bearer ${API_KEY}` }
+      const data = await apiGet<{
+        entity_accuracy: number;
+        query_accuracy: number;
+        kg_linkage: number;
+        time_to_answer: number;
+        compliance_gap_accuracy: number;
+        compliance_reports?: ComplianceReport[];
+      }>("/api/metrics");
+      setMetrics({
+        entity_accuracy: data.entity_accuracy,
+        query_accuracy: data.query_accuracy,
+        kg_linkage: data.kg_linkage,
+        time_to_answer: data.time_to_answer,
+        compliance_gap_accuracy: data.compliance_gap_accuracy,
       });
-      if (res.ok) {
-        const data = await res.json();
-        setMetrics({
-          entity_accuracy: data.entity_accuracy,
-          query_accuracy: data.query_accuracy,
-          kg_linkage: data.kg_linkage,
-          time_to_answer: data.time_to_answer,
-          compliance_gap_accuracy: data.compliance_gap_accuracy
-        });
-        if (data.compliance_reports && data.compliance_reports.length > 0) {
-          setComplianceData(data.compliance_reports);
-        }
+      if (data.compliance_reports && data.compliance_reports.length > 0) {
+        setComplianceData(data.compliance_reports);
       }
-    } catch (e) {
-      console.warn("Could not load live backend metrics, using fallback.", e);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.detail : "Could not load live metrics — showing cached values.";
+      setError(msg);
+      console.warn("Could not load live backend metrics:", err);
     }
   };
 
