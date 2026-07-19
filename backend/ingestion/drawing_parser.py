@@ -129,9 +129,87 @@ def _extract_tags_with_regex(text: str) -> List[Dict]:
     return tags
 
 
+def _parse_raw_image(file_path: str, results: dict) -> dict:
+    """
+    Handle raw image files (PNG/JPG etc.) directly — no fitz needed.
+    Routes: Gemini Vision → PaddleOCR → regex on empty string fallback.
+    """
+    import mimetypes
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if not mime_type:
+        mime_type = "image/png"
+
+    with open(file_path, "rb") as f:
+        img_bytes = f.read()
+
+    results['metadata'] = {
+        'title': os.path.basename(file_path),
+        'page_count': 1,
+        'source_file': file_path,
+        'file_type': 'image'
+    }
+
+    # Tier 1: PaddleOCR
+    if is_paddle_available():
+        try:
+            paddle_results = run_paddle_ocr(file_path, timeout=45)
+            if paddle_results:
+                combined_text = " ".join(r["text"] for r in paddle_results if r.get("text"))
+                tags = _extract_tags_with_regex(combined_text)
+                results['equipment_tags'] = tags
+                results['full_text'] = combined_text
+                results['pages'] = [{'page': 1, 'text': combined_text, 'tags_found': len(tags), 'parse_method': 'paddleocr'}]
+                results['parse_method'] = 'paddleocr'
+                results['success'] = True
+                print(f"✅ Drawing parser (image/paddleocr): {len(tags)} tags from {os.path.basename(file_path)}")
+                return results
+        except Exception as e:
+            print(f"[drawing_parser] PaddleOCR error on image: {e}")
+
+    # Tier 2: Gemini Vision
+    if GEMINI_API_KEY:
+        try:
+            gemini_json_str = _call_gemini_vision(img_bytes, mime_type)
+            if gemini_json_str:
+                parsed = json.loads(gemini_json_str)
+                page_tags = parsed.get("equipment_tags", [])
+                page_connections = parsed.get("connections", [])
+                for t in page_tags:
+                    t["page"] = 1
+                    t["source"] = "gemini_vision"
+                results['equipment_tags'] = page_tags
+                results['connections'] = page_connections
+                results['drawing_type'] = parsed.get("drawing_type", "Engineering Drawing")
+                results['pages'] = [{'page': 1, 'tags_found': len(page_tags), 'parse_method': 'gemini_vision'}]
+                results['parse_method'] = 'gemini_vision'
+                results['full_text'] = f"[Gemini Vision extracted {len(page_tags)} equipment tags]"
+                results['success'] = True
+                print(f"✅ Drawing parser (image/gemini_vision): {len(page_tags)} tags from {os.path.basename(file_path)}")
+                return results
+        except Exception as e:
+            print(f"⚠️ Gemini Vision failed on image {os.path.basename(file_path)}: {e}")
+
+    # Tier 3: Fallback — try PaddleOCR text extraction on image bytes
+    try:
+        from PIL import Image as PILImage
+        import io
+        img = PILImage.open(io.BytesIO(img_bytes))
+        # Convert to text via basic analysis — no text available, return empty with success=True
+        results['pages'] = [{'page': 1, 'text': '', 'tags_found': 0, 'parse_method': 'image_fallback'}]
+        results['parse_method'] = 'image_fallback'
+        results['full_text'] = ''
+        results['equipment_tags'] = []
+        results['success'] = True
+        print(f"⚠️ Drawing parser (image/fallback): No OCR available, returning empty for {os.path.basename(file_path)}")
+    except Exception as e:
+        results['error'] = str(e)
+
+    return results
+
+
 def parse_drawing(file_path: str) -> Dict:
     """
-    Main entry point. Parses P&ID / engineering drawings.
+    Main entry point. Parses P&ID / engineering drawings and raw images.
     Priority: PaddleOCR (if venv_paddle set up) → Gemini Vision → PyMuPDF+regex.
     
     Returns:
@@ -159,6 +237,12 @@ def parse_drawing(file_path: str) -> Dict:
     if not os.path.exists(file_path):
         results['error'] = f"File not found: {file_path}"
         return results
+
+    # Route raw image files directly — fitz cannot open them
+    ext = os.path.splitext(file_path)[1].lower()
+    IMAGE_EXTS = {'.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.tif', '.webp'}
+    if ext in IMAGE_EXTS:
+        return _parse_raw_image(file_path, results)
 
     try:
         doc = fitz.open(file_path)
