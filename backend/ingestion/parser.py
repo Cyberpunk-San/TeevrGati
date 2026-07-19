@@ -45,7 +45,38 @@ class DocumentParser:
             parse_chain.append(f"file_detection: {file_type_info['type']}")
             
             # Step 2: Route to appropriate parser
-            if file_type_info['type'] == 'clean_text':
+            if is_drawing(file_path):
+                print("  -> Using Drawing Parser (P&ID)")
+                try:
+                    parsed = drawing_parser.parse_drawing(file_path)
+                    if parsed.get('error'):
+                        # If drawing parser fails, we still try OCR on text
+                        print(f"  [WARNING] Drawing parser had issues: {parsed['error']}")
+                        parse_chain.append(f"drawing_partial_fail: {parsed['error']}")
+                        # Get text via OCR
+                        text_parsed = scanned_ocr.parse_scanned(file_path)
+                        if 'error' in text_parsed and text_parsed.get('fallback_used'):
+                            raise Exception(text_parsed['error'])
+                        result['pages'] = text_parsed['pages']
+                        result['metadata'] = text_parsed['metadata']
+                    else:
+                        result['pages'] = parsed['pages']
+                        result['metadata'] = parsed['metadata']
+                        # Add special drawing metadata
+                        result['equipment_tags'] = parsed.get('equipment_tags', [])
+                    result['parse_chain'] = parse_chain + ['drawing_paddleocr_or_vision']
+                except Exception as draw_error:
+                    print(f"  [WARNING] Drawing parser failed: {draw_error}")
+                    # Ultimate fallback: regular OCR
+                    parsed = scanned_ocr.parse_scanned(file_path)
+                    if 'error' in parsed and parsed.get('fallback_used'):
+                        raise Exception(parsed['error'])
+                    result['pages'] = parsed['pages']
+                    result['metadata'] = parsed['metadata']
+                    result['parse_chain'] = parse_chain + ['ocr_fallback_after_drawing_fail']
+                    result['fallback_used'] = True
+            
+            elif file_type_info['type'] == 'clean_text':
                 print("  -> Using Clean Text Parser")
                 parsed = clean_text.parse_clean_text(file_path)
                 result['pages'] = parsed['pages']
@@ -79,37 +110,6 @@ class DocumentParser:
                         result['fallback_used'] = True
                     except Exception as layout_error:
                         raise Exception(f"All OCR methods failed: {layout_error}")
-            
-            elif is_drawing(file_path):
-                print("  -> Using Drawing Parser (P&ID)")
-                try:
-                    parsed = drawing_parser.parse_drawing(file_path)
-                    if parsed.get('error'):
-                        # If drawing parser fails, we still try OCR on text
-                        print(f"  [WARNING] Drawing parser had issues: {parsed['error']}")
-                        parse_chain.append(f"drawing_partial_fail: {parsed['error']}")
-                        # Get text via OCR
-                        text_parsed = scanned_ocr.parse_scanned(file_path)
-                        if 'error' in text_parsed and text_parsed.get('fallback_used'):
-                            raise Exception(text_parsed['error'])
-                        result['pages'] = text_parsed['pages']
-                        result['metadata'] = text_parsed['metadata']
-                    else:
-                        result['pages'] = parsed['pages']
-                        result['metadata'] = parsed['metadata']
-                        # Add special drawing metadata
-                        result['equipment_tags'] = parsed.get('equipment_tags', [])
-                    result['parse_chain'] = parse_chain + ['drawing_paddleocr']
-                except Exception as draw_error:
-                    print(f"  [WARNING] Drawing parser failed: {draw_error}")
-                    # Ultimate fallback: regular OCR
-                    parsed = scanned_ocr.parse_scanned(file_path)
-                    if 'error' in parsed and parsed.get('fallback_used'):
-                        raise Exception(parsed['error'])
-                    result['pages'] = parsed['pages']
-                    result['metadata'] = parsed['metadata']
-                    result['parse_chain'] = parse_chain + ['ocr_fallback_after_drawing_fail']
-                    result['fallback_used'] = True
             
             else:
                 # Unknown file type

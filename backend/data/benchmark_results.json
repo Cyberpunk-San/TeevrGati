@@ -1,0 +1,79 @@
+{
+  "timestamp": 1784485579.1406932,
+  "total_queries": 10,
+  "successful_queries": 0,
+  "average_time_ms": 3087.9294633865356,
+  "entity_extraction_accuracy": 0.0,
+  "details": [
+    {
+      "query": "What is the correct torque spec for Pump P-201 coupling bolts?",
+      "expected": "95",
+      "is_correct": false,
+      "time_ms": 6582.729816436768,
+      "error": null
+    },
+    {
+      "query": "What is the lockout sequence for P-201 according to the 2024 SOP?",
+      "expected": "step b",
+      "is_correct": false,
+      "time_ms": 3859.874963760376,
+      "error": null
+    },
+    {
+      "query": "Which asset has a bearing replacement interval of 12,000 hours?",
+      "expected": "p-202",
+      "is_correct": false,
+      "time_ms": 923.375129699707,
+      "error": null
+    },
+    {
+      "query": "What is the inner race frequency for the crude oil transfer pump?",
+      "expected": "103",
+      "is_correct": false,
+      "time_ms": 4345.316648483276,
+      "error": null
+    },
+    {
+      "query": "Who reported the BRG-WEAR failure on P-202?",
+      "expected": "sharma",
+      "is_correct": false,
+      "time_ms": 4291.539907455444,
+      "error": null
+    },
+    {
+      "query": "What is the maximum allowed vibration for Pump P-201 before it hits ISO Zone C?",
+      "expected": "7.1",
+      "is_correct": false,
+      "time_ms": 707.8747749328613,
+      "error": null
+    },
+    {
+      "query": "What is the root cause for the SEAL-FAIL incident on C-101?",
+      "expected": "dry running",
+      "is_correct": false,
+      "time_ms": 2663.0640029907227,
+      "error": null
+    },
+    {
+      "query": "Which pump was serviced for cavitation by R. Verma?",
+      "expected": "p-202",
+      "is_correct": false,
+      "time_ms": 3523.603916168213,
+      "error": null
+    },
+    {
+      "query": "What safety equipment is required for C-101 maintenance according to OISD-105?",
+      "expected": "ppe",
+      "is_correct": false,
+      "time_ms": 745.9485530853271,
+      "error": null
+    },
+    {
+      "query": "What was the previous torque spec for P-201 before the 2024 update?",
+      "expected": "80",
+      "is_correct": false,
+      "time_ms": 3235.966920852661,
+      "error": null
+    }
+  ]
+}
