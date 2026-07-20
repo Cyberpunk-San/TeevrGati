@@ -1,0 +1,29 @@
+{
+  "id": "WO-26-0002",
+  "asset_id": "P-201",
+  "fault_type": "Inner Race Bearing Fault",
+  "severity": "Warning",
+  "created_at": "2026-07-20T14:12:04.827981",
+  "status": "Open",
+  "priority": "Medium",
+  "description": "Diagnosed Inner Race Bearing Fault on P-201",
+  "context": "Resolution: HUMAN - Unwritten workaround captured from Sr. Engineer: this document is outdated",
+  "spare_parts_required": [
+    "General service kit"
+  ],
+  "labor_estimate_hours": 4,
+  "safety_requirements": [
+    "Lockout-tagout (LOTO) required",
+    "Safety glasses required",
+    "Steel-toed boots required",
+    "Heavy lifting may be required"
+  ],
+  "instructions": [
+    "1. Lockout-tagout equipment",
+    "2. Disassemble affected area",
+    "3. Inspect/replace Inner Race Bearing Fault",
+    "4. Reassemble and test",
+    "5. Document findings"
+  ],
+  "generated_by": "Industrial Cortex AI"
+}

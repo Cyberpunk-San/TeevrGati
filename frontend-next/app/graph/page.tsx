@@ -33,9 +33,9 @@ const TYPE_COLOR: Record<string, string> = {
   outdated: "#52525b",
 };
 
-const MAX_NODES = 36;
-const SVG_W = 920;
-const SVG_H = 560;
+const MAX_NODES = 34;
+const SVG_W = 1240;
+const SVG_H = 760;
 
 function normalizeType(t: string) {
   return (t || "").toLowerCase().replace(/\s+/g, "");
@@ -78,8 +78,26 @@ function selectFocusNodes(nodes: GraphNode[], edges: GraphEdge[]): GraphNode[] {
   return selected.slice(0, MAX_NODES);
 }
 
-function layoutNodes(nodes: GraphNode[]) {
+function layoutBucket(items: GraphNode[], startX: number, maxPerColumn = 6) {
   const positions: Record<string, { x: number; y: number }> = {};
+  if (!items.length) return positions;
+
+  const columns = Math.min(Math.ceil(items.length / maxPerColumn), 4);
+  const rowsPerColumn = Math.ceil(items.length / columns);
+  const top = 64;
+  const bottom = SVG_H - 64;
+
+  items.forEach((item, idx) => {
+    const col = Math.floor(idx / rowsPerColumn);
+    const row = idx % rowsPerColumn;
+    const x = startX + col * 180;
+    const y = rowsPerColumn === 1 ? SVG_H / 2 : top + (row / (rowsPerColumn - 1)) * (bottom - top);
+    positions[item.id] = { x, y };
+  });
+  return positions;
+}
+
+function layoutNodes(nodes: GraphNode[]) {
   const buckets: Record<string, GraphNode[]> = {
     procedure: [],
     equipment: [],
@@ -95,23 +113,12 @@ function layoutNodes(nodes: GraphNode[]) {
     else buckets.right.push(n);
   }
 
-  const placeColumn = (items: GraphNode[], x: number) => {
-    const n = items.length;
-    if (!n) return;
-    const top = 64;
-    const bottom = SVG_H - 64;
-    items.forEach((item, idx) => {
-      const y = n === 1 ? SVG_H / 2 : top + (idx / (n - 1)) * (bottom - top);
-      positions[item.id] = { x, y };
-    });
+  return {
+    ...layoutBucket(buckets.procedure, 120),
+    ...layoutBucket(buckets.equipment, 380),
+    ...layoutBucket(buckets.component, 640),
+    ...layoutBucket(buckets.right, 900),
   };
-
-  placeColumn(buckets.procedure, 110);
-  placeColumn(buckets.equipment, 320);
-  placeColumn(buckets.component, 530);
-  placeColumn(buckets.right, 760);
-
-  return positions;
 }
 
 export default function GraphPage() {
@@ -249,14 +256,10 @@ export default function GraphPage() {
                   const isOutdated = node.metadata?.status === "outdated";
                   const isActive = activeNode?.id === node.id;
                   const isHovered = hoveredId === node.id;
-                  const showLabel =
-                    isActive ||
-                    isHovered ||
-                    t === "equipment" ||
-                    t === "tacitrule" ||
-                    t === "tacit_rule";
                   const color = isOutdated ? TYPE_COLOR.outdated : TYPE_COLOR[t] || "#71717a";
                   const r = t === "equipment" ? 16 : 11;
+                  const label = isActive || isHovered ? node.label : shortLabel(node.label);
+                  const labelColor = isOutdated ? "#71717a" : "#e4e4e7";
 
                   return (
                     <g
@@ -274,22 +277,21 @@ export default function GraphPage() {
                         cy={pos.y}
                         r={r}
                         fill={color}
-                        fillOpacity={isOutdated ? 0.45 : 0.9}
+                        fillOpacity={isOutdated ? 0.45 : 0.95}
                         stroke={isActive ? "#fafafa" : "var(--bg-base)"}
                         strokeWidth={isActive ? 2.5 : 1.5}
                       />
-                      {showLabel && (
-                        <text
-                          x={pos.x}
-                          y={pos.y + r + 16}
-                          fill={isOutdated ? "#71717a" : "#e4e4e7"}
-                          fontSize="11"
-                          fontWeight={t === "equipment" ? 600 : 450}
-                          textAnchor="middle"
-                        >
-                          {isOutdated ? `↻ ${shortLabel(node.label)}` : shortLabel(node.label)}
-                        </text>
-                      )}
+                      <text
+                        x={pos.x}
+                        y={pos.y + r + 18}
+                        fill={labelColor}
+                        fontSize={isActive || isHovered ? "12" : "11"}
+                        fontWeight={t === "equipment" ? 600 : 450}
+                        textAnchor="middle"
+                        opacity={0.95}
+                      >
+                        {isOutdated ? `↻ ${label}` : label}
+                      </text>
                     </g>
                   );
                 })}

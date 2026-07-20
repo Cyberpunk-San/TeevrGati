@@ -39,10 +39,12 @@ def render_graph_viz(kg, active_asset_id: str):
         
     # Create matplotlib figure with dark background
     fig, ax = plt.subplots(figsize=(10, 6), facecolor='#1a1f2c')
+    fig.patch.set_facecolor('#1a1f2c')
     ax.set_facecolor('#1a1f2c')
     
     # Positions layout
-    pos = nx.spring_layout(subgraph, k=1.2, seed=42)
+    pos = nx.spring_layout(subgraph, k=0.9, iterations=140, seed=42)
+    ax.margins(0.08)
     
     # Determine node colors, labels, and sizes
     node_colors = []
@@ -130,7 +132,8 @@ def render_graph_viz(kg, active_asset_id: str):
         font_size=8,
         font_color='white',
         font_family='sans-serif',
-        font_weight='bold'
+        font_weight='bold',
+        bbox=dict(facecolor='#1a1f2c', edgecolor='none', alpha=0.75, pad=0.4)
     )
     
     # Add edge labels for REPLACED_BY

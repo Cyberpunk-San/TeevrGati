@@ -1,0 +1,25 @@
+{
+  "success": true,
+  "document_id": "doc_20260720_141620",
+  "pages": [
+    {
+      "page": 1,
+      "text": "",
+      "tags_found": 0,
+      "parse_method": "image_fallback"
+    }
+  ],
+  "metadata": {
+    "title": "test.png",
+    "page_count": 1,
+    "source_file": "/home/rudnibh/Projects/TeevrGati/backend/data/raw/test.png",
+    "file_type": "image"
+  },
+  "parse_chain": [
+    "file_detection: drawing",
+    "drawing_paddleocr_or_vision"
+  ],
+  "error": null,
+  "fallback_used": false,
+  "equipment_tags": []
+}
