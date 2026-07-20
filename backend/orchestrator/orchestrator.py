@@ -698,9 +698,13 @@ class Orchestrator:
             rule_text = structured_rule['rule_text']
             rule_type = structured_rule['type']
             
+            equipment_node_id = f"EQ-{asset_id}"
+            if equipment_node_id not in self.brain.kg.graph.nodes and f"EQ_{asset_id}" in self.brain.kg.graph.nodes:
+                equipment_node_id = f"EQ_{asset_id}"
+
             # Add to KG
             rule_id = self.brain.kg.add_tacit_rule(
-                equipment_id=f"EQ_{asset_id}",
+                equipment_id=equipment_node_id,
                 rule_text=rule_text,
                 person_id="PERSON_Senior_Engineer"
             )

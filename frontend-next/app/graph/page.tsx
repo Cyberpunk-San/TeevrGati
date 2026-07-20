@@ -57,6 +57,15 @@ function selectFocusNodes(nodes: GraphNode[], edges: GraphEdge[]): GraphNode[] {
     if (label.includes("p-201") || label.includes("p201")) s += 40;
     if (label.includes("c-101") || label.includes("c101")) s += 20;
     if (n.metadata?.status === "outdated") s += 12;
+
+    const timestamp = n.metadata?.timestamp ? Date.parse(String(n.metadata.timestamp)) : NaN;
+    if (!Number.isNaN(timestamp)) {
+      const ageDays = (Date.now() - timestamp) / (1000 * 60 * 60 * 24);
+      if (ageDays < 1) s += 40;
+      else if (ageDays < 7) s += 22;
+      else if (ageDays < 30) s += 12;
+    }
+
     return s;
   };
 

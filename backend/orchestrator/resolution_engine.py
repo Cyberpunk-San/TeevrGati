@@ -54,11 +54,16 @@ class ResolutionEngine:
             print("[WARNING] No asset_id provided for self-healing graph operation.")
             return []
             
-        target_asset_node = f"EQ_{asset_id}"
+        target_asset_node = f"EQ-{asset_id}"
         if target_asset_node not in kg.graph.nodes:
-            print(f"[WARNING] Asset node {target_asset_node} not found in the Knowledge Graph. Seeding empty node to heal.")
-            # Automatically create the node to prevent failure during demos
-            kg.graph.add_node(target_asset_node, type='Equipment', status='active', label=asset_id)
+            alt_asset_node = f"EQ_{asset_id}"
+            if alt_asset_node in kg.graph.nodes:
+                target_asset_node = alt_asset_node
+                print(f"[WARNING] Asset node {alt_asset_node} found using legacy naming.")
+            else:
+                print(f"[WARNING] Asset node {target_asset_node} not found in the Knowledge Graph. Seeding empty node to heal.")
+                # Automatically create the node to prevent failure during demos
+                kg.graph.add_node(target_asset_node, type='EQUIPMENT', status='active', label=asset_id)
             
         related_docs = []
         
