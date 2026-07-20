@@ -1,8 +1,10 @@
 import chromadb
 from chromadb.utils import embedding_functions
-from sentence_transformers import SentenceTransformer
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 import hashlib
 import json
+import os
+from typing import Optional, Dict, Any, List, Union
 
 class VectorIndex:
     """
@@ -13,9 +15,13 @@ class VectorIndex:
         self.persist_directory = persist_directory
         self.client = chromadb.PersistentClient(path=persist_directory)
         
-        # Use a free, local embedding model
+        # Use configurable embedding model
+        embedding_model_name = os.getenv(
+            "EMBEDDING_MODEL",
+            "all-MiniLM-L6-v2"
+        )
         self.embedding_model = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="all-MiniLM-L6-v2"
+            model_name=embedding_model_name
         )
         
         # Create or get collection
@@ -24,28 +30,45 @@ class VectorIndex:
             embedding_function=self.embedding_model
         )
         
-        # Also load sentence transformer for direct use
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        # Initialize text splitter for better chunking
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=int(os.getenv("CHUNK_SIZE", "500")),
+            chunk_overlap=int(os.getenv("CHUNK_OVERLAP", "100")),
+            separators=["\n\n", "\n", ". ", "! ", "? ", ", ", " ", ""],
+            length_function=len,
+        )
     
-    def chunk_document(self, pages: list, chunk_size: int = 500, overlap: int = 100) -> list:
-        """Split document into overlapping chunks for RAG"""
-        chunks = []
+    def chunk_document(self, pages: list, chunk_size: Optional[int] = None, overlap: Optional[int] = None) -> list:
+        """
+        Split document into overlapping chunks for RAG using recursive character splitting.
+        """
         full_text = " ".join([p.get('text', '') for p in pages])
         
-        # Simple sliding window
-        words = full_text.split()
-        if not words:
-            return chunks
-            
-        step = max(1, chunk_size - overlap)
-        for i in range(0, len(words), step):
-            chunk = " ".join(words[i:i + chunk_size])
-            if chunk.strip():
+        if not full_text.strip():
+            return []
+        
+        # Use custom chunk size if provided, otherwise use default
+        if chunk_size or overlap:
+            splitter = RecursiveCharacterTextSplitter(
+                chunk_size=chunk_size or 500,
+                chunk_overlap=overlap or 100,
+                separators=["\n\n", "\n", ". ", "! ", "? ", ", ", " ", ""],
+                length_function=len,
+            )
+            chunks_text = splitter.split_text(full_text)
+        else:
+            chunks_text = self.text_splitter.split_text(full_text)
+        
+        # Format chunks with metadata
+        chunks = []
+        for i, chunk_text in enumerate(chunks_text):
+            if chunk_text.strip():
                 chunks.append({
-                    'text': chunk,
-                    'chunk_id': hashlib.md5(chunk.encode()).hexdigest()[:8],
-                    'word_count': len(chunk.split()),
-                    'start_index': i
+                    'text': chunk_text,
+                    'chunk_id': hashlib.md5(chunk_text.encode()).hexdigest()[:8],
+                    'word_count': len(chunk_text.split()),
+                    'chunk_index': i,
+                    'total_chunks': len(chunks_text)
                 })
         
         return chunks
@@ -67,7 +90,7 @@ class VectorIndex:
         return sanitized
     
     def add_document(self, document_id: str, pages: list, metadata: dict = None):
-        """Add document chunks to the vector index"""
+        """Add document chunks to the vector index using upsert for duplicate protection"""
         chunks = self.chunk_document(pages)
         
         if not chunks:
@@ -84,39 +107,58 @@ class VectorIndex:
                 'document_id': document_id,
                 'chunk_id': chunk['chunk_id'],
                 'word_count': chunk['word_count'],
-                'start_index': chunk['start_index'],
+                'chunk_index': chunk['chunk_index'],
+                'total_chunks': chunk['total_chunks'],
                 **base_metadata
             }
             for chunk in chunks
         ]
         
         try:
-            self.collection.add(
+            # Use upsert to avoid duplicates
+            self.collection.upsert(
                 ids=ids,
                 documents=texts,
                 metadatas=metadatas
             )
-            print(f"[SUCCESS] Added {len(chunks)} chunks from {document_id}")
+            print(f"[SUCCESS] Added/Updated {len(chunks)} chunks from {document_id}")
         except Exception as e:
             print(f"[ERROR] Failed to add document to index: {e}")
     
-    def search(self, query: str, top_k: int = 5) -> list:
-        """Search the index for relevant chunks"""
+    def search(
+        self, 
+        query: str, 
+        top_k: int = 5,
+        where: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Search the index for relevant chunks with optional metadata filtering.
+        
+        Args:
+            query: The search query
+            top_k: Number of results to return
+            where: Optional metadata filter (e.g., {"asset": "P-201"})
+        """
         try:
             results = self.collection.query(
                 query_texts=[query],
-                n_results=top_k
+                n_results=top_k,
+                where=where
             )
             
-            # Format results
+            # Format results with similarity scores
             formatted_results = []
             if results['ids'] and results['documents']:
                 for i in range(len(results['ids'][0])):
+                    distance = results['distances'][0][i] if results.get('distances') else None
+                    similarity = 1 - distance if distance is not None else None
+                    
                     formatted_results.append({
                         'id': results['ids'][0][i],
                         'text': results['documents'][0][i],
                         'metadata': results['metadatas'][0][i] if results['metadatas'] else {},
-                        'distance': results['distances'][0][i] if results.get('distances') else None
+                        'distance': distance,
+                        'similarity': similarity
                     })
             
             return formatted_results
@@ -124,18 +166,63 @@ class VectorIndex:
             print(f"[ERROR] Search failed: {e}")
             return []
     
-    def query_with_context(self, query: str, top_k: int = 5) -> dict:
-        """Search and return both raw chunks and the full context"""
-        results = self.search(query, top_k)
+    def query_with_context(
+        self, 
+        query: str, 
+        top_k: int = 5,
+        where: Optional[Dict[str, Any]] = None
+    ) -> dict:
+        """
+        Search and return both raw chunks and the full context with optional filtering.
+        """
+        results = self.search(query, top_k, where)
         
         # Combine chunks into one context
         context = "\n\n".join([r['text'] for r in results])
         
+        # Calculate average similarity if results exist
+        avg_similarity = None
+        if results:
+            similarities = [r.get('similarity') for r in results if r.get('similarity') is not None]
+            if similarities:
+                avg_similarity = sum(similarities) / len(similarities)
+        
         return {
             'results': results,
             'context': context,
-            'source_count': len(results)
+            'source_count': len(results),
+            'query': query,
+            'avg_similarity': avg_similarity
         }
+    
+    def delete_document(self, document_id: str):
+        """Delete all chunks for a specific document"""
+        try:
+            # Get all IDs for this document
+            results = self.collection.get(
+                where={"document_id": document_id}
+            )
+            if results and results['ids']:
+                self.collection.delete(ids=results['ids'])
+                print(f"[SUCCESS] Deleted {len(results['ids'])} chunks for {document_id}")
+            else:
+                print(f"[INFO] No chunks found for {document_id}")
+        except Exception as e:
+            print(f"[ERROR] Failed to delete document: {e}")
+    
+    def get_stats(self) -> dict:
+        """Get statistics about the index"""
+        try:
+            count = self.collection.count()
+            return {
+                'total_chunks': count,
+                'persist_directory': self.persist_directory,
+                'embedding_model': os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2"),
+                'collection_name': "industrial_docs"
+            }
+        except Exception as e:
+            print(f"[ERROR] Failed to get stats: {e}")
+            return {}
     
     def reset(self):
         """Reset the index (for testing)"""
@@ -147,3 +234,4 @@ class VectorIndex:
             name="industrial_docs",
             embedding_function=self.embedding_model
         )
+        print("[SUCCESS] Index reset")

@@ -1,47 +1,149 @@
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import (
+    PydanticOutputParser,
+    StrOutputParser,
+)
+from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.runnables import (
+    RunnableLambda,
+    RunnableParallel,
+    RunnablePassthrough,
+)
+from langchain_core.documents import Document
+from langchain_huggingface import HuggingFacePipeline
+from langchain_huggingface import HuggingFaceEndpoint
+from langchain_huggingface import ChatHuggingFace
+from langchain_core.tools import StructuredTool
+from langchain_core.retrievers import BaseRetriever
+from pydantic import BaseModel, Field
+from typing import (
+    Dict,
+    List,
+    Optional,
+    Any,
+)
+import os
 import json
 import time
-from datetime import datetime
-from typing import Dict, List, Any, Optional
 import sys
-import os
-import requests
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
+from datetime import datetime
+from dotenv import load_dotenv
+from backend.brain.unified_brain import UnifiedBrain
+
+from backend.luigi_ears.vibration_tools import VibrationAnalyzer
+from backend.luigi_ears.work_order_gen import WorkOrderGenerator
+
+from backend.orchestrator.prompts import (
+    HypothesisPrompts,
+    SynthesisPrompts,
+)
+
+from backend.orchestrator.tacit_agent import TacitKnowledgeAgent
+from backend.orchestrator.push_engine import PushEngine
+from backend.orchestrator.resolution_engine import ResolutionEngine
 
 # Ensure workspace root directory is in path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from backend.brain.unified_brain import UnifiedBrain
-from backend.luigi_ears.vibration_tools import VibrationAnalyzer
-from backend.luigi_ears.work_order_gen import WorkOrderGenerator
-from backend.orchestrator.prompts import HypothesisPrompts, SynthesisPrompts
-from backend.orchestrator.tacit_agent import TacitKnowledgeAgent
-from backend.orchestrator.push_engine import PushEngine
-from backend.orchestrator.resolution_engine import ResolutionEngine
+class Hypothesis(BaseModel):
+    cause: str = Field(description="Predicted root cause")
+    confidence: float = Field(description="Confidence score between 0 and 1")
+    evidence: str = Field(description="Supporting evidence")
+
+
+class HypothesisResponse(BaseModel):
+    hypotheses: list[Hypothesis]
 
 class Orchestrator:
     """
     The "Brain" that routes queries, detects conflicts, and synthesizes answers.
     """
     
-    def __init__(self, kg_path: str = "backend/data/kg/graph.json", db_path: str = "backend/data/chroma_db"):
-        self.brain = UnifiedBrain(kg_path=kg_path, db_path=db_path)
+    def __init__(
+        self,
+        kg_path: str = "backend/data/kg/graph.json",
+        db_path: str = "backend/data/chroma_db"
+    ):
+        # ==========================
+        # Core Services
+        # ==========================
+        self.brain = UnifiedBrain(
+            kg_path=kg_path,
+            db_path=db_path
+        )
+
         self.vibration_analyzer = VibrationAnalyzer()
         self.work_order_gen = WorkOrderGenerator()
         self.tacit_agent = TacitKnowledgeAgent()
         self.push_engine = PushEngine()
         self.resolution_engine = ResolutionEngine()
-        self.agent_log = []  # Streaming log for UI
-        self.last_gemini_429_time = 0.0  # Cooldown for rate limit
-        
-        # Confidence thresholds loaded from environment variables
-        self.CONFIDENCE_HIGH = float(os.getenv('TEEVRGATI_CONFIDENCE_HIGH', '0.8'))
-        self.CONFIDENCE_MEDIUM = float(os.getenv('TEEVRGATI_CONFIDENCE_MEDIUM', '0.6'))
-        self.CONFIDENCE_LOW = float(os.getenv('TEEVRGATI_CONFIDENCE_LOW', '0.4'))
+
+        # ==========================
+        # Agent State
+        # ==========================
+        self.agent_log = []
+
+        # ==========================
+        # LLM Configuration
+        # ==========================
+        self.provider = os.getenv(
+            "LLM_PROVIDER",
+            "huggingface"
+        ).lower()
+
+        self.temperature = float(
+            os.getenv(
+                "LLM_TEMPERATURE",
+                "0.2"
+            )
+        )
+
+        self.max_tokens = int(
+            os.getenv(
+                "LLM_MAX_TOKENS",
+                "512"
+            )
+        )
+
+        self.model_name = os.getenv(
+            "HF_MODEL",
+            "mistralai/Mistral-7B-Instruct-v0.2"
+        )
+
+        # ==========================
+        # Output Parsers
+        # ==========================
+        self.hypothesis_parser = PydanticOutputParser(
+            pydantic_object=HypothesisResponse
+        )
+
+        self.text_parser = StrOutputParser()
+
+        # ==========================
+        # Confidence Thresholds
+        # ==========================
+        self.CONFIDENCE_HIGH = float(
+            os.getenv(
+                "TEEVRGATI_CONFIDENCE_HIGH",
+                "0.8"
+            )
+        )
+
+        self.CONFIDENCE_MEDIUM = float(
+            os.getenv(
+                "TEEVRGATI_CONFIDENCE_MEDIUM",
+                "0.6"
+            )
+        )
+
+        self.CONFIDENCE_LOW = float(
+            os.getenv(
+                "TEEVRGATI_CONFIDENCE_LOW",
+                "0.4"
+            )
+        )
 
     
     def log(self, message: str, level: str = "INFO"):
@@ -225,233 +327,355 @@ class Orchestrator:
         query_lower = query.lower()
         return any(kw in query_lower for kw in keywords)
     
-    def _call_llm(self, prompt: str, system_prompt: str = "") -> Optional[str]:
+    def _call_llm(
+        self,
+        prompt: str,
+        system_prompt: str = "",
+        parser=None,
+    ):
         """
-        Calls a real LLM using Gemini, OpenAI, or HuggingFace if keys are present in environment.
-        Prioritizes the fine-tuned model if configured.
+        Unified LangChain LLM interface.
+
+        Priority
+        --------
+        1. Fine-tuned model
+        2. Gemini
+        3. OpenAI
+        4. HuggingFace
         """
-        fine_tuned_model = os.getenv("TEEVRGATI_FINE_TUNED_MODEL") or os.getenv("FINE_TUNED_MODEL")
+
+        fine_tuned = os.getenv("TEEVRGATI_FINE_TUNED_MODEL")
         openai_key = os.getenv("OPENAI_API_KEY")
-        gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-        hf_token = os.getenv("HF_TOKEN")
+        gemini_key = (
+            os.getenv("GOOGLE_API_KEY")
+            or os.getenv("GEMINI_API_KEY")
+        )
+        hf_key = os.getenv("HF_TOKEN")
 
-        # Automatically detect if OpenAI's model is fine-tuned (starts with 'ft:')
-        openai_model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
-        if not fine_tuned_model and openai_model.startswith("ft:"):
-            fine_tuned_model = openai_model
+        llm = None
 
-        # Helper functions to call each provider
-        def call_openai(model_name: str) -> Optional[str]:
-            if not openai_key:
-                return None
-            try:
-                headers = {
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {openai_key}"
+        ####################################################
+        # Select Provider
+        ####################################################
+
+        try:
+
+            # ---------- Fine Tuned ----------
+
+            if fine_tuned:
+
+                if fine_tuned.startswith("ft:"):
+
+                    llm = ChatOpenAI(
+                        api_key=openai_key,
+                        model=fine_tuned,
+                        temperature=self.temperature,
+                        max_retries=2,
+                    )
+
+                elif "gemini" in fine_tuned.lower():
+
+                    llm = ChatGoogleGenerativeAI(
+                        google_api_key=gemini_key,
+                        model=fine_tuned,
+                        temperature=self.temperature,
+                    )
+
+            # ---------- Gemini ----------
+
+            elif self.provider == "gemini" and gemini_key:
+
+                llm = ChatGoogleGenerativeAI(
+                    google_api_key=gemini_key,
+                    model=os.getenv(
+                        "GEMINI_MODEL",
+                        "gemini-2.5-flash"
+                    ),
+                    temperature=self.temperature,
+                )
+
+            # ---------- OpenAI ----------
+
+            elif self.provider == "openai" and openai_key:
+
+                llm = ChatOpenAI(
+                    api_key=openai_key,
+                    model=os.getenv(
+                        "OPENAI_MODEL",
+                        "gpt-4.1"
+                    ),
+                    temperature=self.temperature,
+                    max_retries=2,
+                )
+
+            # ---------- HuggingFace ----------
+
+            elif self.provider == "huggingface" and hf_key:
+
+                llm = ChatHuggingFace(
+                    llm=HuggingFaceEndpoint(
+                        repo_id=self.model_name,
+                        huggingfacehub_api_token=hf_key,
+                        task="text-generation",
+                        max_new_tokens=self.max_tokens,
+                        temperature=self.temperature,
+                    )
+                )
+
+            else:
+
+                raise ValueError(
+                    f"Unsupported provider: {self.provider}"
+                )
+
+            ####################################################
+            # Prompt
+            ####################################################
+
+            prompt_template = ChatPromptTemplate.from_messages(
+                [
+                    ("system", system_prompt),
+                    ("human", "{prompt}"),
+                ]
+            )
+
+            chain = prompt_template | llm
+
+            if parser is not None:
+                chain = chain | parser
+
+            return chain.invoke(
+                {
+                    "prompt": prompt
                 }
-                payload = {
-                    "model": model_name,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "temperature": 0.2
-                }
-                response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=10)
-                if response.status_code == 200:
-                    return response.json()['choices'][0]['message']['content']
-                else:
-                    self.log(f"⚠️ OpenAI API returned status {response.status_code}: {response.text}", "WARNING")
-            except Exception as e:
-                self.log(f"⚠️ OpenAI call failed: {e}", "WARNING")
+            )
+
+        except Exception as e:
+
+            self.log(
+                f"LLM invocation failed: {e}",
+                "WARNING",
+            )
+
             return None
-
-        def call_gemini(model_name: str) -> Optional[str]:
-            if not gemini_key:
-                return None
-            if time.time() - getattr(self, 'last_gemini_429_time', 0.0) < 60:
-                self.log(f"⚠️ Skipping Gemini {model_name} (in 60s cooldown for 429 quota limit)", "WARNING")
-                return None
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    headers = {"Content-Type": "application/json"}
-                    payload = {
-                        "contents": [
-                            {"role": "user", "parts": [{"text": f"{system_prompt}\n\n{prompt}"}]}
-                        ],
-                        "generationConfig": {"temperature": 0.2}
-                    }
-                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
-                    response = requests.post(url, headers=headers, json=payload, timeout=10)
-                    if response.status_code == 200:
-                        return response.json()['candidates'][0]['content']['parts'][0]['text']
-                    else:
-                        self.log(f"⚠️ Gemini API returned status {response.status_code} (Attempt {attempt+1}/{max_retries}): {response.text}", "WARNING")
-                        if response.status_code == 429:
-                            self.last_gemini_429_time = time.time()
-                            return None # Early abort on 429
-                except Exception as e:
-                    self.log(f"⚠️ Gemini call failed on attempt {attempt+1}/{max_retries}: {e}", "WARNING")
-                if attempt < max_retries - 1:
-                    time.sleep(2 ** attempt)
-            return None
-
-        def call_hf(model_name: str) -> Optional[str]:
-            if not hf_token:
-                return None
-            try:
-                headers = {"Authorization": f"Bearer {hf_token}"}
-                payload = {
-                    "inputs": f"<s>[INST] {system_prompt}\n\n{prompt} [/INST]",
-                    "parameters": {"max_new_tokens": 512, "temperature": 0.2}
-                }
-                response = requests.post(f"https://api-inference.huggingface.co/models/{model_name}", headers=headers, json=payload, timeout=10)
-                if response.status_code == 200:
-                    res_json = response.json()
-                    if isinstance(res_json, list) and len(res_json) > 0:
-                        return res_json[0].get('generated_text', '')
-                    elif isinstance(res_json, dict):
-                        return res_json.get('generated_text', '')
-                else:
-                    self.log(f"⚠️ Hugging Face API returned status {response.status_code}: {response.text}", "WARNING")
-            except Exception as e:
-                self.log(f"⚠️ Hugging Face call failed: {e}", "WARNING")
-            return None
-
-        # 1. Attempt using the fine-tuned model first if configured
-        if fine_tuned_model:
-            self.log(f"Attempting to use fine-tuned model: {fine_tuned_model}", "INFO")
-            # Deduce provider based on prefix or string content
-            if (fine_tuned_model.startswith("ft:") or "gpt" in fine_tuned_model) and openai_key:
-                res = call_openai(fine_tuned_model)
-                if res:
-                    return res
-            elif ("gemini" in fine_tuned_model or fine_tuned_model.startswith("tunedModels/")) and gemini_key:
-                res = call_gemini(fine_tuned_model)
-                if res:
-                    return res
-            elif hf_token:
-                res = call_hf(fine_tuned_model)
-                if res:
-                    return res
-
-        # 2. Fallbacks (Standard Flow)
-        # Try Gemini 2.0 first, fall back to 1.5-flash (different quota pool)
-        if gemini_key:
-            for gemini_model in ["gemini-2.0-flash", "gemini-1.5-flash"]:
-                res = call_gemini(gemini_model)
-                if res:
-                    return res
-
-        # Try OpenAI default
-        if openai_key:
-            res = call_openai(openai_model)
-            if res:
-                return res
-
-        # Try HF default
-        if hf_token:
-            hf_model = os.getenv("HF_MODEL", "mistralai/Mistral-7B-Instruct-v0.2")
-            res = call_hf(hf_model)
-            if res:
-                return res
-
-        return None
-
-    def _generate_hypotheses(self, query: str, context: Dict, asset_id: Optional[str]) -> List[Dict]:
-        """
-        Generate hypotheses using LLM with confidence scores.
-        """
-        rag_chunks = context.get('rag_results', {}).get('results', [])
-        kg_results = context.get('kg_results', {})
         
+    def _generate_hypotheses(
+        self,
+        query: str,
+        context: Dict,
+        asset_id: Optional[str],
+    ) -> List[Dict]:
+        """
+        Generate ranked diagnostic hypotheses using the LLM.
+        Falls back to heuristic reasoning if the LLM is unavailable.
+        """
+
+        rag_chunks = (
+            context.get("rag_results", {})
+            .get("results", [])
+        )
+
+        kg_results = context.get(
+            "kg_results",
+            {},
+        )
+
         context_text = ""
+
         if rag_chunks:
-            context_text += "📄 From documents:\n"
+
+            context_text += "DOCUMENT EVIDENCE\n"
+
             for chunk in rag_chunks[:3]:
-                context_text += f"- {chunk['text'][:200]}...\n"
-        
+
+                context_text += (
+                    f"- {chunk['text'][:250]}\n"
+                )
+
         if kg_results:
-            context_text += "\n🔗 From knowledge graph:\n"
+
+            context_text += "\nKNOWLEDGE GRAPH\n"
+
             for tag, kg_data in kg_results.items():
-                context_text += f"- Equipment: {tag}\n"
-                if kg_data.get('procedures'):
-                    context_text += f"  * Procedures: {len(kg_data['procedures'])}\n"
-                if kg_data.get('incidents'):
-                    context_text += f"  * Incidents: {len(kg_data['incidents'])}\n"
-        
+
+                context_text += (
+                    f"\nEquipment : {tag}\n"
+                )
+
+                if kg_data.get("procedures"):
+
+                    context_text += (
+                        f"Procedures : "
+                        f"{len(kg_data['procedures'])}\n"
+                    )
+
+                if kg_data.get("incidents"):
+
+                    context_text += (
+                        f"Incidents : "
+                        f"{len(kg_data['incidents'])}\n"
+                    )
+
+        # Build prompt with format instructions
+        format_instructions = self.hypothesis_parser.get_format_instructions()
         prompt = HypothesisPrompts.generate_hypotheses_prompt(
             query=query,
             context=context_text,
-            asset_id=asset_id or "Unknown"
+            asset_id=asset_id or "Unknown",
         )
-        
-        # 1. Attempt Real LLM Call
-        llm_response = self._call_llm(prompt, "You are a senior industrial maintenance diagnostic engineer.")
-        if llm_response:
-            try:
-                import re
-                json_match = re.search(r'\{.*\}', llm_response, re.DOTALL)
-                if json_match:
-                    parsed = json.loads(json_match.group(0))
-                    if 'hypotheses' in parsed:
-                        return sorted(parsed['hypotheses'], key=lambda x: x.get('confidence', 0), reverse=True)
-            except Exception as e:
-                self.log(f"⚠️ Failed to parse LLM JSON response: {e}. Falling back to heuristic engine.", "WARNING")
+        prompt += f"\n\n{format_instructions}"
 
-        # 2. Dynamic Fallback Logic using Context matching
+        system_prompt = (
+            "You are a senior industrial maintenance "
+            "diagnostic engineer.\n\n"
+            "Always return valid structured output."
+        )
+
+        ####################################################
+        # LLM
+        ####################################################
+
+        try:
+
+            response = self._call_llm(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                parser=self.hypothesis_parser,
+            )
+
+            if (
+                response
+                and response.hypotheses
+            ):
+
+                hypotheses = [
+                    {
+                        "cause": h.cause,
+                        "confidence": h.confidence,
+                        "evidence": h.evidence,
+                    }
+                    for h in response.hypotheses
+                ]
+
+                return sorted(
+                    hypotheses,
+                    key=lambda x: x["confidence"],
+                    reverse=True,
+                )
+
+        except Exception as e:
+
+            self.log(
+                f"LLM hypothesis generation failed: {e}",
+                "WARNING",
+            )
+
+        ####################################################
+        # Heuristic fallback
+        ####################################################
+
         import random
+
         hypotheses = []
+
         found_evidence = False
-        
+
         for chunk in rag_chunks[:3]:
-            text = chunk.get('text', '')
-            if any(k in text.lower() for k in ['limit', 'max', 'exceed', 'threshold', 'should', 'must']):
-                hypotheses.append({
-                    'cause': 'Parameter limit deviation based on OEM standards',
-                    'confidence': 0.80,
-                    'evidence': f"Manual states: '{text[:120]}...'"
-                })
+
+            text = chunk.get(
+                "text",
+                "",
+            )
+
+            if any(
+                k in text.lower()
+                for k in [
+                    "limit",
+                    "max",
+                    "threshold",
+                    "should",
+                    "must",
+                ]
+            ):
+
+                hypotheses.append(
+                    {
+                        "cause":
+                            "Parameter limit deviation based on OEM standards",
+                        "confidence": 0.80,
+                        "evidence":
+                            f"Manual states: '{text[:120]}...'",
+                    }
+                )
+
                 found_evidence = True
                 break
-                
+
         if not found_evidence:
-            if "vibrat" in query.lower() or "incident" in query.lower():
+
+            if (
+                "vibrat" in query.lower()
+                or "incident" in query.lower()
+            ):
+
                 hypotheses = [
+
                     {
-                        'cause': 'Mechanical misalignment / seal wear',
-                        'confidence': 0.85,
-                        'evidence': 'Vibration levels at 7.2 mm/s exceed standard limits of 4.5 mm/s specified in active documentation.'
+                        "cause":
+                            "Mechanical misalignment / seal wear",
+                        "confidence": 0.85,
+                        "evidence":
+                            "Vibration levels exceed OEM limits.",
                     },
+
                     {
-                        'cause': 'Bearing defect (BPFO frequency wear)',
-                        'confidence': 0.70,
-                        'evidence': 'Sensor envelope spectral analysis detects bearing defect signatures.'
+                        "cause":
+                            "Bearing defect (BPFO frequency wear)",
+                        "confidence": 0.70,
+                        "evidence":
+                            "Envelope spectrum indicates bearing damage.",
                     },
+
                     {
-                        'cause': 'Cavitation / Unbalance',
-                        'confidence': 0.40,
-                        'evidence': 'General balance parameters appear standard.'
-                    }
+                        "cause":
+                            "Cavitation / Rotor unbalance",
+                        "confidence": 0.40,
+                        "evidence":
+                            "Possible secondary vibration source.",
+                    },
                 ]
+
             else:
+
                 hypotheses = [
+
                     {
-                        'cause': 'Normal wear and tear',
-                        'confidence': 0.75 + random.uniform(-0.05, 0.05),
-                        'evidence': 'General operating limits indicate typical aging characteristics.'
+                        "cause":
+                            "Normal wear and tear",
+                        "confidence":
+                            0.75
+                            + random.uniform(-0.05, 0.05),
+                        "evidence":
+                            "Typical aging characteristics.",
                     },
+
                     {
-                        'cause': 'Calibration Drift',
-                        'confidence': 0.50 + random.uniform(-0.05, 0.05),
-                        'evidence': 'Telemetry readings suggest minor offset variance.'
-                    }
+                        "cause":
+                            "Calibration drift",
+                        "confidence":
+                            0.50
+                            + random.uniform(-0.05, 0.05),
+                        "evidence":
+                            "Minor telemetry offset detected.",
+                    },
                 ]
+
+        return sorted(
+            hypotheses,
+            key=lambda x: x["confidence"],
+            reverse=True,
+        )
         
-        # Return sorted by confidence
-        return sorted(hypotheses, key=lambda x: x['confidence'], reverse=True)
-    
     def _run_physics(self, asset_id: str, query: Optional[str] = None) -> Dict:
         """
         Run deterministic physics analysis and predictive machine learning models.
@@ -587,10 +811,14 @@ class Orchestrator:
             physics=physics_str
         )
         
-        # Call LLM
-        llm_response = self._call_llm(prompt, "You are a senior industrial maintenance advisor preparing a technician work report.")
+        # Call LLM with text parser
+        llm_response = self._call_llm(
+            prompt, 
+            "You are a senior industrial maintenance advisor preparing a technician work report.",
+            parser=self.text_parser
+        )
         if llm_response:
-            return llm_response.strip()
+            return llm_response  # Already a string from StrOutputParser
 
         # Fallback manual synthesis formatting (used when LLM keys/quota fail)
         answer = self._format_document_evidence(context) + "\n\n"
@@ -812,7 +1040,7 @@ class Orchestrator:
             f"What do the historical documents and regulations say about this situation? "
             f"Are there any procedures or limits that apply?"
         )
-        historian_msg = self._call_llm(historian_prompt, historian_system)
+        historian_msg = self._call_llm(historian_prompt, historian_system, parser=self.text_parser)
         if not historian_msg:
             # Deterministic fallback
             doc_names = [s.get('name', s.get('source', 'SOP')) for s in context.get('sources', [])]
@@ -841,7 +1069,7 @@ class Orchestrator:
             f"What does the physics and sensor data indicate? "
             f"Does the live data confirm or contradict the hypotheses: {hyp_str}?"
         )
-        physicist_msg = self._call_llm(physicist_prompt, physicist_system)
+        physicist_msg = self._call_llm(physicist_prompt, physicist_system, parser=self.text_parser)
         if not physicist_msg:
             if physics_result:
                 fault = physics_result.get('fault_type', 'anomaly')
@@ -872,7 +1100,7 @@ class Orchestrator:
             f"What would an experienced field operator say about this situation? "
             f"Are there any informal checks or workarounds that apply here?"
         )
-        operator_msg = self._call_llm(operator_prompt, operator_system)
+        operator_msg = self._call_llm(operator_prompt, operator_system, parser=self.text_parser)
         if not operator_msg:
             if tacit_matches:
                 operator_msg = (
@@ -901,7 +1129,7 @@ class Orchestrator:
             f"Operator says: {operator_msg}\n\n"
             f"Synthesize these views and provide the consensus decision and recommended next action."
         )
-        consensus_msg = self._call_llm(consensus_prompt, consensus_system)
+        consensus_msg = self._call_llm(consensus_prompt, consensus_system, parser=self.text_parser)
         if not consensus_msg:
             if physics_result and physics_result.get('severity') in ['Critical', 'Alert', 'High']:
                 consensus_msg = (

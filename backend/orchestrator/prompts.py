@@ -16,20 +16,11 @@ You are an industrial maintenance expert analyzing a problem with equipment.
 
 **Task:** Generate 3 possible causes for the problem, ranked by likelihood.
 
-Format your response as JSON:
-{{
-    "hypotheses": [
-        {{
-            "cause": "Brief cause description",
-            "confidence": 0.85,
-            "evidence": "Specific evidence from context that supports this"
-        }}
-    ]
-}}
-
 If you're uncertain, assign lower confidence scores. Never exceed 0.95 confidence unless you have direct evidence.
 
 **Important:** If the context doesn't contain enough information, set confidence scores appropriately low and note the gaps.
+
+Respond with a valid JSON object matching the specified format.
 """
 
 
